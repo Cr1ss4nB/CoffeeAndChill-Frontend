@@ -1,0 +1,76 @@
+{
+  "hash": "0fac3806",
+  "configHash": "c2c09ebc",
+  "lockfileHash": "5ae951d8",
+  "browserHash": "4ff8c214",
+  "optimized": {
+    "react/jsx-dev-runtime": {
+      "src": "../../node_modules/react/jsx-dev-runtime.js",
+      "file": "react_jsx-dev-runtime.js",
+      "fileHash": "df10ffd4",
+      "needsInterop": true
+    },
+    "react": {
+      "src": "../../node_modules/react/index.js",
+      "file": "react.js",
+      "fileHash": "172ee6d2",
+      "needsInterop": true
+    },
+    "react-dom/client": {
+      "src": "../../node_modules/react-dom/client.js",
+      "file": "react-dom_client.js",
+      "fileHash": "b6db6c96",
+      "needsInterop": true
+    },
+    "react-router-dom": {
+      "src": "../../node_modules/react-router-dom/dist/index.mjs",
+      "file": "react-router-dom.js",
+      "fileHash": "6ab12c15",
+      "needsInterop": false
+    },
+    "@tanstack/react-query": {
+      "src": "../../node_modules/@tanstack/react-query/build/modern/index.js",
+      "file": "@tanstack_react-query.js",
+      "fileHash": "fac37a77",
+      "needsInterop": false
+    },
+    "@tanstack/react-query-devtools": {
+      "src": "../../node_modules/@tanstack/react-query-devtools/build/modern/index.js",
+      "file": "@tanstack_react-query-devtools.js",
+      "fileHash": "097758d3",
+      "needsInterop": false
+    },
+    "react-hot-toast": {
+      "src": "../../node_modules/react-hot-toast/dist/index.mjs",
+      "file": "react-hot-toast.js",
+      "fileHash": "f3016c85",
+      "needsInterop": false
+    }
+  },
+  "chunks": {
+    "AY2UQYZQ-NN4GWKBQ": {
+      "file": "AY2UQYZQ-NN4GWKBQ.js"
+    },
+    "chunk-X5EBYUPF": {
+      "file": "chunk-X5EBYUPF.js"
+    },
+    "chunk-GJHNCDOC": {
+      "file": "chunk-GJHNCDOC.js"
+    },
+    "chunk-NO6UH6X3": {
+      "file": "chunk-NO6UH6X3.js"
+    },
+    "XMTSMVTM-IJGTJJM6": {
+      "file": "XMTSMVTM-IJGTJJM6.js"
+    },
+    "chunk-HWA2APQ2": {
+      "file": "chunk-HWA2APQ2.js"
+    },
+    "chunk-YT7Z337N": {
+      "file": "chunk-YT7Z337N.js"
+    },
+    "chunk-5WRI5ZAA": {
+      "file": "chunk-5WRI5ZAA.js"
+    }
+  }
+}
