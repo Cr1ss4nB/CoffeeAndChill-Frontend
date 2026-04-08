@@ -7,6 +7,7 @@ import { Spinner } from '@/components/atoms/Spinner/Spinner';
 
 const LoginPage = lazy(() => import('@/pages/LoginPage'));
 const RegisterPage = lazy(() => import('@/pages/RegisterPage'));
+const MenuPage = lazy(() => import('@/pages/MenuPage').then(m => ({ default: m.MenuPage })));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -34,7 +35,8 @@ export default function App() {
           <Routes>
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
-            <Route path="*" element={<Navigate to="/login" replace />} />
+            <Route path="/menu" element={<MenuPage />} />
+            <Route path="*" element={<Navigate to="/menu" replace />} />
           </Routes>
         </Suspense>
       </BrowserRouter>
