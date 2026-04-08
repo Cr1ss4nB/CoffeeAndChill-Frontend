@@ -10,7 +10,7 @@ export function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const login = useAuthStore((s) => s.login);
+  const login = useAuthStore((s: any) => s.login);
   const navigate = useNavigate();
   const location = useLocation();
   const returnTo = (location.state as { returnTo?: string } | null)?.returnTo;
@@ -19,34 +19,26 @@ export function LoginForm() {
     e.preventDefault();
     setLoading(true);
 
-    // TODO: Replace with actual API call to POST /auth/login
-    await new Promise((r) => setTimeout(r, 800));
+    try {
+      await login({ email, password });
+      
+      const user = useAuthStore.getState().user;
+      toast.success(`Bienvenido/a, ${user?.name}`);
 
-    if (email === 'admin@coffeechill.co' && password === 'admin') {
-      login(
-        { id: 'e1', name: 'Valentina Rojas', email, role: 'ADMIN', active: true },
-        'mock-token-admin'
-      );
-      toast.success('Bienvenida, Valentina');
-      navigate('/dashboard');
-    } else if (email === 'empleado@coffeechill.co' && password === 'empleado') {
-      login(
-        { id: 'e2', name: 'Santiago Herrera', email, role: 'EMPLOYEE', active: true },
-        'mock-token-employee'
-      );
-      toast.success('Bienvenido, Santiago');
-      navigate('/orders');
-    } else if (email === 'cliente@coffeechill.co' && password === 'cliente') {
-      login(
-        { id: 'c1', name: 'María García', email, role: 'CUSTOMER', active: true },
-        'mock-token-customer'
-      );
-      toast.success('Bienvenida, María');
-      navigate(returnTo || '/menu');
-    } else {
-      toast.error('Credenciales incorrectas');
+      // Basic role-based redirect logic
+      if (user?.role === 'ADMIN') {
+        navigate('/dashboard');
+      } else if (user?.role === 'EMPLOYEE') {
+        navigate('/orders');
+      } else {
+        navigate(returnTo || '/menu');
+      }
+    } catch (error: any) {
+      const message = error.response?.data?.detail || 'Credenciales incorrectas';
+      toast.error(message);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }
 
   return (
