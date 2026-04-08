@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { User } from '@/types';
+import api from '@/api/api.client';
+import type { User, LoginCredentials, TokenResponse } from '@/types';
 
 // Versioned key — bump to 'v2' if the stored schema changes
 export const AUTH_TOKEN_KEY = 'coffee-chill:auth-token:v1';
@@ -25,7 +26,8 @@ interface AuthState {
   user: User | null;
   token: string | null;
   isAuthenticated: boolean;
-  login: (user: User, token: string) => void;
+  login: (credentials: LoginCredentials) => Promise<void>;
+  setAuth: (user: User, token: string) => void;
   logout: () => void;
 }
 
@@ -35,7 +37,13 @@ export const useAuthStore = create<AuthState>()(
       user: null,
       token: null,
       isAuthenticated: false,
-      login: (user, token) => {
+      login: async (credentials: LoginCredentials) => {
+        const response = await api.post<TokenResponse>('/auth/login', credentials);
+        const { user, access_token } = response.data;
+        safeSetToken(access_token);
+        set({ user: { ...user, active: true, id: String(user.id) }, token: access_token, isAuthenticated: true });
+      },
+      setAuth: (user: User, token: string) => {
         safeSetToken(token);
         set({ user, token, isAuthenticated: true });
       },

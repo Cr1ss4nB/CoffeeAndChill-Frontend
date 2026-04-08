@@ -5,9 +5,16 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  role: Role;
-  avatarUrl?: string;
+  role: string;
   active: boolean;
+  avatarUrl?: string;
+}
+
+export interface BackendUser {
+  id: number;
+  name: string;
+  email: string;
+  role: string;
 }
 
 export interface LoginCredentials {
@@ -18,6 +25,13 @@ export interface LoginCredentials {
 export interface AuthResponse {
   token: string;
   user: User;
+}
+
+export interface TokenResponse {
+  access_token: string;
+  refresh_token: string;
+  token_type: string;
+  user: BackendUser;
 }
 
 // ---- Menu / Products ----
