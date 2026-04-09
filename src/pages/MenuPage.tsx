@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useCategories, useProducts } from '@/hooks/useCatalog';
 import { ProductCard } from '@/components/molecules/ProductCard/ProductCard';
+import { AppShellTemplate } from '@/components/templates/AppShellTemplate/AppShellTemplate';
 import { Coffee, Palette, Store, Filter } from 'lucide-react';
 import { Button } from '@/components/atoms/Button/Button';
 
@@ -53,51 +54,50 @@ export function MenuPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-7xl">
-      <div className="mb-12">
-        <h1 className="font-display text-4xl md:text-5xl font-bold bg-gradient-to-r from-accent-primary to-accent-secondary bg-clip-text text-transparent mb-4">
-          Nuestro Menú
-        </h1>
-        <p className="text-text-secondary text-lg max-w-2xl">
-          Descubre nuestra selección de cafés de especialidad, repostería artesanal y experiencias creativas.
-        </p>
-      </div>
+    <AppShellTemplate title="Nuestro Menú">
+      <div className="container mx-auto px-4 py-8 max-w-7xl">
+        <div className="mb-8">
+          <p className="text-text-secondary text-lg max-w-2xl">
+            Descubre nuestra selección de cafés de especialidad, repostería artesanal y experiencias creativas.
+          </p>
+        </div>
 
-      {/* Category Tabs */}
-      <div className="flex flex-wrap gap-4 mb-8 overflow-x-auto pb-4 scrollbar-hide">
-        <button
-          onClick={() => setSelectedCategory(undefined)}
-          className={`flex items-center gap-2 px-6 py-3 rounded-2xl font-medium transition-all duration-300 border-2 ${
-            selectedCategory === undefined
-              ? 'bg-accent-primary border-accent-primary text-white shadow-lg shadow-accent-primary/20'
-              : 'bg-white/50 border-white/50 text-text-secondary hover:border-accent-primary/30'
-          }`}
-        >
-          <Store size={18} />
-          Todos
-        </button>
-        
-        {categories?.map((cat) => {
-          const Icon = iconMap[cat.category_name] || Store;
-          return (
-            <button
-              key={cat.category_id}
-              onClick={() => setSelectedCategory(cat.category_id)}
-              className={`flex items-center gap-2 px-6 py-3 rounded-2xl font-medium transition-all duration-300 border-2 ${
-                selectedCategory === cat.category_id
-                  ? 'bg-accent-primary border-accent-primary text-white shadow-lg shadow-accent-primary/20'
-                  : 'bg-white/50 border-white/50 text-text-secondary hover:border-accent-primary/30'
-              }`}
-            >
-              <Icon size={18} />
-              {cat.category_name}
-            </button>
-          );
-        })}
-      </div>
+        {/* Category Tabs */}
+        <div className="flex flex-wrap gap-4 mb-8 overflow-x-auto pb-4 scrollbar-hide">
+          <button
+            onClick={() => setSelectedCategory(undefined)}
+            className={`flex items-center gap-2 px-6 py-3 rounded-2xl font-medium transition-all duration-300 border-2 ${
+              selectedCategory === undefined
+                ? 'bg-accent-primary border-accent-primary text-white shadow-lg shadow-accent-primary/20'
+                : 'bg-white/50 border-white/50 text-text-secondary hover:border-accent-primary/30'
+            }`}
+          >
+            <Store size={18} />
+            Todos
+          </button>
 
-      {/* Product Grid Container */}
-      {renderContent()}
-    </div>
+          {categories?.map((cat) => {
+            const Icon = iconMap[cat.category_name] || Store;
+            return (
+              <button
+                key={cat.category_id}
+                onClick={() => setSelectedCategory(cat.category_id)}
+                className={`flex items-center gap-2 px-6 py-3 rounded-2xl font-medium transition-all duration-300 border-2 ${
+                  selectedCategory === cat.category_id
+                    ? 'bg-accent-primary border-accent-primary text-white shadow-lg shadow-accent-primary/20'
+                    : 'bg-white/50 border-white/50 text-text-secondary hover:border-accent-primary/30'
+                }`}
+              >
+                <Icon size={18} />
+                {cat.category_name}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Product Grid Container */}
+        {renderContent()}
+      </div>
+    </AppShellTemplate>
   );
 }
