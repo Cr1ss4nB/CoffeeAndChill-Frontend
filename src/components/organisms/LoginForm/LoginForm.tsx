@@ -25,7 +25,6 @@ export function LoginForm() {
       const user = useAuthStore.getState().user;
       toast.success(`Bienvenido/a, ${user?.name}`);
 
-      // Basic role-based redirect logic
       if (user?.role === 'ADMIN') {
         navigate('/dashboard');
       } else if (user?.role === 'EMPLOYEE') {
