@@ -6,6 +6,7 @@ import { Toaster } from 'react-hot-toast';
 import { Spinner } from '@/components/atoms/Spinner/Spinner';
 import { ProtectedRoute } from '@/components/router/ProtectedRoute';
 import { RoleGuard } from '@/components/router/RoleGuard';
+import { CartDrawer } from '@/components/organisms/CartDrawer/CartDrawer';
 
 const LoginPage = lazy(() => import('@/pages/LoginPage'));
 const RegisterPage = lazy(() => import('@/pages/RegisterPage'));
@@ -40,6 +41,7 @@ export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
+        <CartDrawer />
         <Suspense fallback={<Loading />}>
           <Routes>
             <Route path="/login" element={<LoginPage />} />
