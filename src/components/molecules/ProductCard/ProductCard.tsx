@@ -1,28 +1,46 @@
 import { ShoppingCart } from 'lucide-react';
 import { Button } from '@/components/atoms/Button/Button';
+import { useUIStore } from '@/store/ui.store';
 import type { Product } from '@/hooks/useCatalog';
+import type { Product as StoreProduct } from '@/types';
 
 interface ProductCardProps {
   readonly product: Product;
 }
 
+
+function toStoreProduct(p: Product): StoreProduct {
+  return {
+    id: String(p.product_id),
+    name: p.name,
+    price: p.price,
+    category: 'menu' as StoreProduct['category'],
+    available: p.status === 'ACTIVE',
+    description: p.description ?? '',
+  };
+}
+
 export function ProductCard({ product }: ProductCardProps) {
-  // Format price (assuming COP or similar)
+  const addToCart = useUIStore((s) => s.addToCart);
+
   const formattedPrice = new Intl.NumberFormat('es-CO', {
     style: 'currency',
     currency: 'COP',
     minimumFractionDigits: 0,
   }).format(product.price);
 
+  const handleAddToCart = () => {
+    addToCart(toStoreProduct(product));
+  };
+
   return (
     <div className="glass group overflow-hidden flex flex-col h-full hover:border-accent-primary/30 transition-all duration-300">
       <div className="aspect-square bg-gradient-to-br from-blush/20 to-lavender/20 flex items-center justify-center overflow-hidden">
-        {/* Placeholder image using Lucide if no URL - for now let's use a colored box */}
         <div className="w-full h-full flex items-center justify-center text-text-secondary/20 font-display text-4xl group-hover:scale-110 transition-transform duration-500">
           {product.name.charAt(0)}
         </div>
       </div>
-      
+
       <div className="p-4 flex flex-col flex-grow">
         <div className="flex justify-between items-start mb-2">
           <h3 className="font-display font-bold text-lg text-text-primary leading-tight">
@@ -32,14 +50,15 @@ export function ProductCard({ product }: ProductCardProps) {
             {formattedPrice}
           </span>
         </div>
-        
+
         <p className="text-sm text-text-secondary line-clamp-2 mb-4 flex-grow">
           {product.description || 'Delicioso producto preparado con los mejores ingredientes de Coffee & Chill.'}
         </p>
-        
-        <Button 
-          size="sm" 
-          variant="ghost" 
+
+        <Button
+          size="sm"
+          variant="ghost"
+          onClick={handleAddToCart}
           className="w-full gap-2 group-hover:bg-accent-primary group-hover:text-white transition-colors"
         >
           <ShoppingCart size={16} />
