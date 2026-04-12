@@ -48,7 +48,7 @@ export interface Product {
 }
 
 // ---- Orders ----
-export type OrderStatus = 'EN_ESPERA' | 'EN_PROCESO' | 'TERMINADO';
+export type OrderStatus = 'PENDING' | 'IN_PROGRESS' | 'COMPLETED';
 export type PaymentStatus = 'PAGADO' | 'NO_PAGADO';
 
 export interface OrderItem {
