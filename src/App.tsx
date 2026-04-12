@@ -22,6 +22,9 @@ const DashboardPage = lazy(() => import('@/pages/DashboardPage'));
 const InventoryPage = lazy(() => import('@/pages/InventoryPage'));
 const WorkshopsPage = lazy(() => import('@/pages/WorkshopsPage'));
 
+const EmployeesPage = lazy(() => import('@/pages/EmployeesPage'));
+const QRManagementPage = lazy(() => import('@/pages/QRManagementPage'));
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -98,6 +101,28 @@ export default function App() {
               element={
                 <ProtectedRoute>
                   <WorkshopsPage />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/employees"
+              element={
+                <ProtectedRoute>
+                  <RoleGuard allowedRoles={['ADMIN']}>
+                    <EmployeesPage />
+                  </RoleGuard>
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/qr"
+              element={
+                <ProtectedRoute>
+                  <RoleGuard allowedRoles={['ADMIN']}>
+                    <QRManagementPage />
+                  </RoleGuard>
                 </ProtectedRoute>
               }
             />

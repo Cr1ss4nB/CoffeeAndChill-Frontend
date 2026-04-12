@@ -1,33 +1,23 @@
-import { LayoutDashboard, UtensilsCrossed, Package, CalendarDays, BookOpen, LogOut } from 'lucide-react';
+import { LogOut } from 'lucide-react';
 import { NavLink } from '@/components/molecules/NavLink/NavLink';
 import { useAuthStore } from '@/store/auth.store';
 import { useUIStore } from '@/store/ui.store';
-
-const customerLinks = [
-  { to: '/menu', icon: BookOpen, label: 'Menú' },
-  { to: '/workshops', icon: CalendarDays, label: 'Talleres' },
-];
-
-const employeeLinks = [
-  { to: '/orders', icon: UtensilsCrossed, label: 'Pedidos' },
-  { to: '/inventory', icon: Package, label: 'Inventario' },
-];
-
-const adminLinks = [
-  { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-];
+import { navItems } from '@/components/organisms/Sidebar/Sidebar.constants';
 
 export function Sidebar() {
   const { user, logout } = useAuthStore();
   const sidebarOpen = useUIStore((s) => s.sidebarOpen);
 
   const role = user?.role ?? 'CUSTOMER';
+  const isAdmin = role === 'ADMIN';
+  const isStaff = role === 'EMPLOYEE' || role === 'ADMIN';
 
-  const links = [
-    ...customerLinks,
-    ...(role === 'EMPLOYEE' || role === 'ADMIN' ? employeeLinks : []),
-    ...(role === 'ADMIN' ? adminLinks : []),
-  ];
+  const visibleLinks = navItems.filter((item) => {
+    if (item.adminOnly) return isAdmin;
+    // /orders and /inventory are staff-only
+    if (item.to === '/orders' || item.to === '/inventory') return isStaff;
+    return true;
+  });
 
   return (
     <aside
@@ -47,7 +37,7 @@ export function Sidebar() {
 
       {/* Nav */}
       <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
-        {links.map((link) => (
+        {visibleLinks.map((link) => (
           <NavLink key={link.to} {...link} collapsed={!sidebarOpen} />
         ))}
       </nav>
