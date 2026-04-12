@@ -4,6 +4,14 @@ import { useUIStore } from '@/store/ui.store';
 import type { Product } from '@/hooks/useCatalog';
 import type { Product as StoreProduct } from '@/types';
 
+export function formatCOP(value: number): string {
+  return new Intl.NumberFormat('es-CO', {
+    style: 'currency',
+    currency: 'COP',
+    minimumFractionDigits: 0,
+  }).format(value);
+}
+
 interface ProductCardProps {
   readonly product: Product;
 }
