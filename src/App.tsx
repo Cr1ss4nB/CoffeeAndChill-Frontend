@@ -19,6 +19,9 @@ const OrdersPage = lazy(() => import('@/pages/OrdersPage'));
 
 const DashboardPage = lazy(() => import('@/pages/DashboardPage'));
 
+const InventoryPage = lazy(() => import('@/pages/InventoryPage'));
+const WorkshopsPage = lazy(() => import('@/pages/WorkshopsPage'));
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -75,6 +78,26 @@ export default function App() {
                   <RoleGuard allowedRoles={['ADMIN']}>
                     <DashboardPage />
                   </RoleGuard>
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/inventory"
+              element={
+                <ProtectedRoute>
+                  <RoleGuard allowedRoles={['EMPLOYEE', 'ADMIN']}>
+                    <InventoryPage />
+                  </RoleGuard>
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/workshops"
+              element={
+                <ProtectedRoute>
+                  <WorkshopsPage />
                 </ProtectedRoute>
               }
             />
