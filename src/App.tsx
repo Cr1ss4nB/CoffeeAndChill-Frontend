@@ -50,18 +50,15 @@ export default function App() {
         <CartDrawer />
         <Suspense fallback={<Loading />}>
           <Routes>
+            {/* Redirige la raíz a login en lugar de /404 */}
+            <Route path="/" element={<Navigate to="/login" replace />} />
+
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/403" element={<ForbiddenPage />} />
 
-            <Route
-              path="/menu"
-              element={
-                <ProtectedRoute>
-                  <MenuPage />
-                </ProtectedRoute>
-              }
-            />
+            {/* Carta pública: accesible sin autenticación */}
+            <Route path="/menu" element={<MenuPage />} />
 
             <Route
               path="/orders"

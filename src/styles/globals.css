@@ -12,6 +12,12 @@
   --color-glass-border: rgba(255, 255, 255, 0.4);
   --color-text-primary: #3D2C2C;
   --color-text-secondary: #7A6060;
+
+  /* Acento principal — lavanda media, coherente con la paleta blush/lavender */
+  --color-accent-primary: #9B82C8;
+  /* Tono suave para hovers y backgrounds sutiles */
+  --color-accent-soft: #EDE8F8;
+
   --shadow-soft: 0 8px 32px rgba(180, 140, 120, 0.15);
 
   --font-display: 'Playfair Display', Georgia, serif;

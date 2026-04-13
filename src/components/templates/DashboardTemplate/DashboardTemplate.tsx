@@ -1,7 +1,6 @@
 import type { ReactNode } from 'react';
 import { Sidebar } from '@/components/organisms/Sidebar/Sidebar';
 import { Navbar } from '@/components/organisms/Navbar/Navbar';
-import { useUIStore } from '@/store/ui.store';
 
 interface DashboardTemplateProps {
   title: string;
@@ -9,17 +8,12 @@ interface DashboardTemplateProps {
 }
 
 export function DashboardTemplate({ title, children }: DashboardTemplateProps) {
-  const sidebarOpen = useUIStore((s) => s.sidebarOpen);
-
   return (
-    <div className="min-h-screen relative">
+    <div className="flex h-screen overflow-hidden">
       <div className="bg-gradient-mesh" />
+      {/* Sidebar ocupa su propio ancho; el main toma el resto con flex-1 */}
       <Sidebar />
-      <main
-        className={`transition-all duration-300 p-4 md:p-6 pb-24 md:pb-6 ${
-          sidebarOpen ? 'md:ml-60' : 'md:ml-[72px]'
-        }`}
-      >
+      <main className="flex-1 min-w-0 overflow-y-auto p-4 md:p-6 pb-24 md:pb-6">
         <Navbar title={title} />
         <div className="page-enter">{children}</div>
       </main>
