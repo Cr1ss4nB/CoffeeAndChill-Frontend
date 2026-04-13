@@ -1,4 +1,5 @@
-import { LogOut } from 'lucide-react';
+import { LogOut, LogIn } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { NavLink } from '@/components/molecules/NavLink/NavLink';
 import { useAuthStore } from '@/store/auth.store';
 import { useUIStore } from '@/store/ui.store';
@@ -42,7 +43,7 @@ export function Sidebar() {
         ))}
       </nav>
 
-      {/* User + Logout */}
+      {/* User info + acción de sesión */}
       <div className="p-3 border-t border-white/20 space-y-2">
         {sidebarOpen && user && (
           <div className="px-4 py-2">
@@ -50,15 +51,30 @@ export function Sidebar() {
             <p className="text-xs text-text-secondary truncate">{user.email}</p>
           </div>
         )}
-        <button
-          onClick={logout}
-          className={`flex items-center gap-3 w-full px-4 py-3 rounded-2xl text-sm text-text-secondary hover:bg-red-50 hover:text-red-500 transition-colors ${
-            !sidebarOpen ? 'justify-center' : ''
-          }`}
-        >
-          <LogOut size={20} className="shrink-0" />
-          {sidebarOpen && <span>Cerrar sesión</span>}
-        </button>
+
+        {user ? (
+          /* Usuario autenticado → Cerrar sesión */
+          <button
+            onClick={logout}
+            className={`flex items-center gap-3 w-full px-4 py-3 rounded-2xl text-sm text-text-secondary hover:bg-red-50 hover:text-red-500 transition-colors ${
+              !sidebarOpen ? 'justify-center' : ''
+            }`}
+          >
+            <LogOut size={20} className="shrink-0" />
+            {sidebarOpen && <span>Cerrar sesión</span>}
+          </button>
+        ) : (
+          /* Visitante sin sesión → Iniciar sesión */
+          <Link
+            to="/login"
+            className={`flex items-center gap-3 w-full px-4 py-3 rounded-2xl text-sm text-text-secondary hover:bg-accent-primary/10 hover:text-accent-primary transition-colors ${
+              !sidebarOpen ? 'justify-center' : ''
+            }`}
+          >
+            <LogIn size={20} className="shrink-0" />
+            {sidebarOpen && <span>Iniciar sesión</span>}
+          </Link>
+        )}
       </div>
     </aside>
   );
