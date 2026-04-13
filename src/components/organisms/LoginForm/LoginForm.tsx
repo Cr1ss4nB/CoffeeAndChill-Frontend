@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
-import { Coffee, Mail, Lock } from 'lucide-react';
+import { Coffee, Mail, Lock, BookOpen } from 'lucide-react';
 import { FormField } from '@/components/molecules/FormField/FormField';
 import { Button } from '@/components/atoms/Button/Button';
 import { useAuthStore } from '@/store/auth.store';
@@ -42,6 +42,7 @@ export function LoginForm() {
 
   return (
     <div className="glass max-w-sm w-full p-8 mx-4">
+      {/* Header */}
       <div className="flex flex-col items-center mb-8">
         <div className="w-16 h-16 rounded-3xl bg-gradient-to-br from-blush to-lavender flex items-center justify-center mb-4">
           <Coffee size={32} className="text-text-primary" />
@@ -50,6 +51,7 @@ export function LoginForm() {
         <p className="text-sm text-text-secondary mt-1">Ingresa a tu cuenta</p>
       </div>
 
+      {/* Formulario de login */}
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="relative">
           <Mail size={16} className="absolute left-3 top-[38px] text-text-secondary/50 z-10" />
@@ -82,7 +84,8 @@ export function LoginForm() {
         </Button>
       </form>
 
-      <p className="text-sm text-text-secondary/70 text-center mt-6">
+      {/* Registro */}
+      <p className="text-sm text-text-secondary/70 text-center mt-5">
         ¿No tienes cuenta?{' '}
         <Link
           to="/register"
@@ -92,6 +95,21 @@ export function LoginForm() {
           Regístrate
         </Link>
       </p>
+
+      {/* Divider */}
+      <div className="flex items-center gap-3 my-5">
+        <div className="flex-1 h-px bg-white/40" />
+        <span className="text-xs text-text-secondary/50 whitespace-nowrap">o continúa sin cuenta</span>
+        <div className="flex-1 h-px bg-white/40" />
+      </div>
+
+      {/* Acceso público a la carta */}
+      <Link to="/menu">
+        <Button variant="ghost" size="lg" className="w-full gap-2">
+          <BookOpen size={18} />
+          Ver nuestra carta
+        </Button>
+      </Link>
     </div>
   );
 }
