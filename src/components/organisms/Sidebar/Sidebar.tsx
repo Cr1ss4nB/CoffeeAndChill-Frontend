@@ -4,6 +4,7 @@ import { NavLink } from '@/components/molecules/NavLink/NavLink';
 import { useAuthStore } from '@/store/auth.store';
 import { useUIStore } from '@/store/ui.store';
 import { navItems } from '@/components/organisms/Sidebar/Sidebar.constants';
+import logoSrc from '@/assets/foreground-1773528399195.png';
 
 export function Sidebar() {
   const { user, logout } = useAuthStore();
@@ -28,9 +29,11 @@ export function Sidebar() {
     >
       {/* Logo */}
       <div className="flex items-center gap-3 px-4 py-5 border-b border-white/20">
-        <div className="w-8 h-8 shrink-0 rounded-xl bg-accent-primary flex items-center justify-center text-white font-bold text-sm">
-          C
-        </div>
+        <img
+          src={logoSrc}
+          alt="Coffee & Chill — logo"
+          className="w-8 h-8 shrink-0 rounded-xl object-contain"
+        />
         {sidebarOpen && (
           <span className="font-display font-bold text-text-primary truncate">CoffeeAndChill</span>
         )}
