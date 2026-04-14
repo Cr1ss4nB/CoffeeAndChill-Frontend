@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
-import { Coffee, Mail, Lock, BookOpen } from 'lucide-react';
+import { Mail, Lock, BookOpen } from 'lucide-react';
 import { FormField } from '@/components/molecules/FormField/FormField';
 import { Button } from '@/components/atoms/Button/Button';
 import { useAuthStore } from '@/store/auth.store';
 import toast from 'react-hot-toast';
+import logoSrc from '@/assets/foreground-1773528399195.png';
 
 export function LoginForm() {
   const [email, setEmail] = useState('');
@@ -44,8 +45,12 @@ export function LoginForm() {
     <div className="glass max-w-sm w-full p-8 mx-4">
       {/* Header */}
       <div className="flex flex-col items-center mb-8">
-        <div className="w-16 h-16 rounded-3xl bg-gradient-to-br from-blush to-lavender flex items-center justify-center mb-4">
-          <Coffee size={32} className="text-text-primary" />
+        <div className="w-16 h-16 rounded-3xl bg-gradient-to-br from-blush to-lavender flex items-center justify-center mb-4 p-1">
+          <img
+            src={logoSrc}
+            alt="Coffee & Chill — logo"
+            className="w-full h-full rounded-2xl object-contain"
+          />
         </div>
         <h1 className="font-display text-2xl font-bold text-text-primary">Coffee & Chill</h1>
         <p className="text-sm text-text-secondary mt-1">Ingresa a tu cuenta</p>
