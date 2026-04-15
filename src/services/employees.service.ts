@@ -14,7 +14,7 @@ export async function getEmployees(): Promise<User[]> {
 
 // TODO: POST /employees
 export async function createEmployee(data: Omit<User, 'id'> & { password: string }): Promise<User> {
-  const { password: _password, ...userData } = data;
+  const { password, ...userData } = data;
   const newEmp: User = { ...userData, id: `e${mockEmployees.length + 1}` };
   mockEmployees.push(newEmp);
   return Promise.resolve({ ...newEmp });
