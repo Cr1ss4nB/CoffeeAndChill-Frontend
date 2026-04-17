@@ -6,11 +6,17 @@ import { Input } from '@/components/atoms/Input/Input';
 import { Label } from '@/components/atoms/Label/Label';
 import { Badge } from '@/components/atoms/Badge/Badge';
 import { Divider } from '@/components/atoms/Divider/Divider';
-import { formatCOP } from '@/components/molecules/ProductCard/productCard.utils';
-import { formatCOP } from '@/utils/formatCOP';
 import { useWorkshops, useCreateReservation } from '@/hooks/useWorkshops';
 import toast from 'react-hot-toast';
 import type { Workshop } from '@/types';
+
+function formatCOP(value: number): string {
+  return new Intl.NumberFormat('es-CO', {
+    style: 'currency',
+    currency: 'COP',
+    minimumFractionDigits: 0,
+  }).format(value);
+}
 
 interface WorkshopBookingModalProps {
   workshop: Workshop;

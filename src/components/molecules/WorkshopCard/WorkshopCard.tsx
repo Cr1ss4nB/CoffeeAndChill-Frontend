@@ -3,9 +3,15 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Button } from '@/components/atoms/Button/Button';
 import { Badge } from '@/components/atoms/Badge/Badge';
-import { formatCOP } from '@/components/molecules/ProductCard/productCard.utils';
-import { formatCOP } from '@/utils/formatCOP';
 import type { Workshop } from '@/types';
+
+function formatCOP(value: number): string {
+  return new Intl.NumberFormat('es-CO', {
+    style: 'currency',
+    currency: 'COP',
+    minimumFractionDigits: 0,
+  }).format(value);
+}
 
 interface WorkshopCardProps {
   workshop: Workshop;

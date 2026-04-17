@@ -4,11 +4,17 @@ import { DashboardTemplate } from '@/components/templates/DashboardTemplate/Dash
 import { StatCard } from '@/components/molecules/StatCard/StatCard';
 import { OrderStatusBadge } from '@/components/molecules/OrderStatusBadge/OrderStatusBadge';
 import { Button } from '@/components/atoms/Button/Button';
-import { formatCOP } from '@/components/molecules/ProductCard/productCard.utils';
-import { formatCOP } from '@/utils/formatCOP';
 import { useOrdersBoard } from '@/hooks/useOrdersBoard';
 import { useInventory } from '@/hooks/useInventory';
 import { useWorkshops } from '@/hooks/useWorkshops';
+
+function formatCOP(value: number): string {
+  return new Intl.NumberFormat('es-CO', {
+    style: 'currency',
+    currency: 'COP',
+    minimumFractionDigits: 0,
+  }).format(value);
+}
 
 export default function DashboardPage() {
   const { data: orders } = useOrdersBoard();
