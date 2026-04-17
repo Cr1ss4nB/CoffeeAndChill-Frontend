@@ -5,6 +5,7 @@ import { StatCard } from '@/components/molecules/StatCard/StatCard';
 import { OrderStatusBadge } from '@/components/molecules/OrderStatusBadge/OrderStatusBadge';
 import { Button } from '@/components/atoms/Button/Button';
 import { formatCOP } from '@/components/molecules/ProductCard/productCard.utils';
+import { formatCOP } from '@/utils/formatCOP';
 import { useOrdersBoard } from '@/hooks/useOrdersBoard';
 import { useInventory } from '@/hooks/useInventory';
 import { useWorkshops } from '@/hooks/useWorkshops';
