@@ -4,7 +4,7 @@ import { useUIStore } from '@/store/ui.store';
 import type { Product } from '@/hooks/useCatalog';
 import type { Product as StoreProduct } from '@/types';
 
-function formatCOP(value: number): string {
+export function formatCOP(value: number): string {
   return new Intl.NumberFormat('es-CO', {
     style: 'currency',
     currency: 'COP',
