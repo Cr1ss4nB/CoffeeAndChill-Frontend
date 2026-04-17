@@ -16,9 +16,9 @@ Ticket: <!-- Azure ticket  -->
 
 ## Changes
 <!-- List the main changes in this PR -->
-- 
-- 
-- 
+-
+-
+-
 
 ## Testing
 <!-- How was this tested? -->

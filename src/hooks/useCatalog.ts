@@ -33,8 +33,8 @@ export function useProducts(categoryId?: number) {
   return useQuery({
     queryKey: ['products', categoryId],
     queryFn: async () => {
-      const url = categoryId 
-        ? `/catalog/products?category_id=${categoryId}` 
+      const url = categoryId
+        ? `/catalog/products?category_id=${categoryId}`
         : '/catalog/products';
       const response = await api.get<Product[]>(url);
       return response.data;

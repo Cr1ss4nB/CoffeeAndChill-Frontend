@@ -22,7 +22,7 @@ export function LoginForm() {
 
     try {
       await login({ email, password });
-      
+
       const user = useAuthStore.getState().user;
       toast.success(`Bienvenido/a, ${user?.name}`);
 
