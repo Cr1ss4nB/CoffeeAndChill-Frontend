@@ -1,5 +1,5 @@
 import type { Order } from '@/types';
-import { formatCOP } from '@/components/molecules/ProductCard/ProductCard';
+import { formatCOP } from '@/utils/formatCOP';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
