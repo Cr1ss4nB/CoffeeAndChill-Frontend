@@ -30,11 +30,7 @@ function toStoreProduct(p: Product): StoreProduct {
 export function ProductCard({ product }: ProductCardProps) {
   const addToCart = useUIStore((s) => s.addToCart);
 
-  const formattedPrice = new Intl.NumberFormat('es-CO', {
-    style: 'currency',
-    currency: 'COP',
-    minimumFractionDigits: 0,
-  }).format(product.price);
+  const formattedPrice = formatCOP(product.price);
 
   const handleAddToCart = () => {
     addToCart(toStoreProduct(product));
