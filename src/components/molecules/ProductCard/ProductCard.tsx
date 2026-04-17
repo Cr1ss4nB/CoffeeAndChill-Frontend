@@ -1,6 +1,7 @@
 import { ShoppingCart } from 'lucide-react';
 import { Button } from '@/components/atoms/Button/Button';
 import { useUIStore } from '@/store/ui.store';
+import { formatCOP } from './productCard.utils';
 import { formatCOP } from '@/utils/formatCOP';
 import type { Product } from '@/hooks/useCatalog';
 import type { Product as StoreProduct } from '@/types';

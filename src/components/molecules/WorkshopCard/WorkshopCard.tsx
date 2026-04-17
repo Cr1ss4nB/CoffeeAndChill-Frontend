@@ -3,6 +3,7 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Button } from '@/components/atoms/Button/Button';
 import { Badge } from '@/components/atoms/Badge/Badge';
+import { formatCOP } from '@/components/molecules/ProductCard/productCard.utils';
 import { formatCOP } from '@/utils/formatCOP';
 import type { Workshop } from '@/types';
 
