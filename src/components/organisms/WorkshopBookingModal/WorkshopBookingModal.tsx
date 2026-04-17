@@ -6,7 +6,7 @@ import { Input } from '@/components/atoms/Input/Input';
 import { Label } from '@/components/atoms/Label/Label';
 import { Badge } from '@/components/atoms/Badge/Badge';
 import { Divider } from '@/components/atoms/Divider/Divider';
-import { formatCOP } from '@/utils/formatCOP';
+import { formatCOP } from '@/components/molecules/ProductCard/productCard.utils';
 import { useWorkshops, useCreateReservation } from '@/hooks/useWorkshops';
 import toast from 'react-hot-toast';
 import type { Workshop } from '@/types';

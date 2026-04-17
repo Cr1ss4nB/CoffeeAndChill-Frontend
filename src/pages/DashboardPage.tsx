@@ -4,7 +4,7 @@ import { DashboardTemplate } from '@/components/templates/DashboardTemplate/Dash
 import { StatCard } from '@/components/molecules/StatCard/StatCard';
 import { OrderStatusBadge } from '@/components/molecules/OrderStatusBadge/OrderStatusBadge';
 import { Button } from '@/components/atoms/Button/Button';
-import { formatCOP } from '@/utils/formatCOP';
+import { formatCOP } from '@/components/molecules/ProductCard/productCard.utils';
 import { useOrdersBoard } from '@/hooks/useOrdersBoard';
 import { useInventory } from '@/hooks/useInventory';
 import { useWorkshops } from '@/hooks/useWorkshops';
