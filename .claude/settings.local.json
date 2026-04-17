@@ -3,7 +3,24 @@
     "allow": [
       "Bash(git checkout:*)",
       "Bash(git pull:*)",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Bash(cat tailwind.config.*)",
+      "Read(//d/UPTC/2026/CoffeeAndChill-Backend/**)",
+      "Bash(flake8 app/ tests/ --max-line-length=120)",
+      "Bash(echo \"EXIT:$?\")",
+      "Bash(pytest tests/ -v)",
+      "Bash(npm list:*)",
+      "Bash(npm install:*)",
+      "Bash(pytest tests/test_auth_extended.py tests/test_catalog_extended.py tests/test_role_access.py -v)",
+      "Bash(node -e \"console.log\\(new Intl.NumberFormat\\('es-CO', {style:'currency',currency:'COP',minimumFractionDigits:0}\\).format\\(50000\\)\\)\")",
+      "Bash(pytest tests/ -v --cov=app --cov-report=term-missing)",
+      "Bash(cross-env NODE_OPTIONS=\"--max-old-space-size=4096\" npx vitest run)",
+      "Bash(NODE_OPTIONS=\"--max-old-space-size=4096\" npx vitest run --reporter=verbose)",
+      "Bash(NODE_OPTIONS=\"--max-old-space-size=4096\" npx vitest run --coverage --reporter=verbose)",
+      "Bash(python3 -m json.tool)",
+      "Bash(pip install:*)",
+      "Bash(python generate_qa_report.py)",
+      "Bash(ls *.pdf)"
     ]
   }
 }
