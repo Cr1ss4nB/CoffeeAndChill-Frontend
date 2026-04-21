@@ -38,6 +38,7 @@ function safeRemoveToken() {
 
 interface AuthState {
   user: User | null;
+
   token: string | null;
   isAuthenticated: boolean;
   login: (credentials: LoginCredentials) => Promise<void>;

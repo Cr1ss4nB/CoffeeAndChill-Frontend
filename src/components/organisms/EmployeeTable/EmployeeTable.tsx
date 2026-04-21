@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Pencil, UserX, X } from 'lucide-react';
+import { Plus, Pencil, UserX, X, History, ArrowDownRight, ArrowUpRight } from 'lucide-react';
 import { Avatar } from '@/components/atoms/Avatar/Avatar';
 import { Badge } from '@/components/atoms/Badge/Badge';
 import { Button } from '@/components/atoms/Button/Button';
@@ -7,6 +7,7 @@ import { FormField } from '@/components/molecules/FormField/FormField';
 import { SearchBar } from '@/components/molecules/SearchBar/SearchBar';
 import { Spinner } from '@/components/atoms/Spinner/Spinner';
 import { useEmployees, useCreateEmployee, useUpdateEmployee, useDeactivateEmployee } from '@/hooks/useEmployees';
+import { useInventoryMovements } from '@/hooks/useInventory';
 import toast from 'react-hot-toast';
 import type { User, Role } from '@/types';
 
@@ -18,6 +19,7 @@ export function EmployeeTable() {
   const [search, setSearch] = useState('');
   const [modal, setModal] = useState<User | 'new' | null>(null);
   const [confirmDeactivate, setConfirmDeactivate] = useState<User | null>(null);
+  const [showHistory, setShowHistory] = useState<User | null>(null);
 
   const filtered = employees?.filter((e) =>
     e.name.toLowerCase().includes(search.toLowerCase())
@@ -38,6 +40,7 @@ export function EmployeeTable() {
         { ...data, password: fd.get('password') as string },
         {
           onSuccess: () => { toast.success('Empleado creado'); setModal(null); },
+          onError: (err: any) => { toast.error(err.response?.data?.detail || 'Error creando empleado'); }
         }
       );
     } else if (modal && typeof modal === 'object') {
@@ -45,6 +48,7 @@ export function EmployeeTable() {
         { id: modal.id, data },
         {
           onSuccess: () => { toast.success('Empleado actualizado'); setModal(null); },
+          onError: (err: any) => { toast.error(err.response?.data?.detail || 'Error actualizando empleado'); }
         }
       );
     }
@@ -77,7 +81,7 @@ export function EmployeeTable() {
               <p className="text-xs text-text-secondary">{emp.email}</p>
             </div>
             <Badge className={emp.role === 'ADMIN' ? 'bg-lavender/60 text-purple-700' : 'bg-sky/60 text-sky-700'}>
-              {emp.role}
+              {emp.role.toUpperCase()}
             </Badge>
             <Badge className={emp.active ? 'bg-sage/60 text-green-700' : 'bg-red-100/80 text-red-600'}>
               {emp.active ? 'Activo' : 'Inactivo'}
@@ -85,6 +89,9 @@ export function EmployeeTable() {
             <div className="flex gap-1">
               <button onClick={() => setModal(emp)} className="p-2 rounded-lg hover:bg-white/40" aria-label="Editar">
                 <Pencil size={16} className="text-text-secondary" />
+              </button>
+              <button onClick={() => setShowHistory(emp)} className="p-2 rounded-lg hover:bg-white/40" aria-label="Historial">
+                <History size={16} className="text-text-secondary" />
               </button>
               {emp.active && (
                 <button onClick={() => setConfirmDeactivate(emp)} className="p-2 rounded-lg hover:bg-red-50/60" aria-label="Desactivar">
@@ -117,11 +124,12 @@ export function EmployeeTable() {
                 <label className="block text-sm font-medium text-text-primary mb-1">Rol</label>
                 <select
                   name="role"
-                  defaultValue={modal !== 'new' ? modal.role : 'EMPLOYEE'}
+                  defaultValue={modal !== 'new' ? modal.role.toLowerCase() : 'waiter'}
                   className="w-full px-4 py-2.5 rounded-xl text-sm bg-white/50 backdrop-blur-sm border border-white/40 focus:outline-none focus:ring-2 focus:ring-blush/50"
                 >
-                  <option value="EMPLOYEE">Empleado</option>
-                  <option value="ADMIN">Administrador</option>
+                  <option value="waiter">Mesero</option>
+                  <option value="cashier">Cajero</option>
+                  <option value="admin">Administrador</option>
                 </select>
               </div>
               <Button type="submit" className="w-full" loading={createEmp.isPending || updateEmp.isPending}>
@@ -148,6 +156,64 @@ export function EmployeeTable() {
           </div>
         </div>
       )}
+      {/* Employee History Modal */}
+      {showHistory && (
+        <EmployeeHistoryModal 
+          user={showHistory} 
+          onClose={() => setShowHistory(null)} 
+        />
+      )}
     </>
+  );
+}
+
+function EmployeeHistoryModal({ user, onClose }: { user: User; onClose: () => void }) {
+  const { data, isLoading } = useInventoryMovements(1, 10, user.id);
+  const movements = data?.items || [];
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/20 backdrop-blur-sm" onClick={onClose} />
+      <div className="glass max-w-2xl w-full p-6 relative z-10 flex flex-col max-h-[80vh]">
+        <div className="flex items-center justify-between mb-5">
+          <div>
+            <h2 className="font-display font-bold text-lg text-text-primary">Historial de Actividad</h2>
+            <p className="text-xs text-text-secondary">{user.name} • {user.email}</p>
+          </div>
+          <button onClick={onClose} className="p-1 rounded-lg hover:bg-white/40">
+            <X size={20} className="text-text-secondary" />
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto min-h-0 pr-2">
+          {isLoading ? (
+            <div className="flex justify-center py-8"><Spinner size="md" /></div>
+          ) : movements.length === 0 ? (
+            <p className="text-center py-8 text-sm text-text-secondary">Sin movimientos registrados.</p>
+          ) : (
+            <div className="space-y-3">
+              {movements.map((m: any) => (
+                <div key={m.movement_id} className="p-3 bg-white/20 rounded-xl border border-white/30 flex items-center gap-3">
+                  <div className={`p-2 rounded-lg ${m.movement_type === 'IN' ? 'bg-sage/40 text-green-700' : 'bg-blush/40 text-red-600'}`}>
+                    {m.movement_type === 'IN' ? <ArrowDownRight size={18} /> : <ArrowUpRight size={18} />}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-text-primary truncate">{m.product_name}</p>
+                    <p className="text-[10px] text-text-secondary">
+                      {new Date(m.movement_date).toLocaleString('es-CO')} • {m.reason}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className={`font-bold text-sm ${m.movement_type === 'IN' ? 'text-green-700' : 'text-red-600'}`}>
+                      {m.movement_type === 'IN' ? '+' : '-'}{m.quantity}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }

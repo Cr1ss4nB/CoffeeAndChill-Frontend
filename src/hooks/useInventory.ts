@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getInventoryItems, createInventoryItem, updateInventoryItem } from '@/services/inventory.service';
+import { getInventoryItems, createInventoryItem } from '@/services/inventory.service';
 import type { InventoryItem } from '@/types';
 
 export function useInventory() {
@@ -18,11 +18,20 @@ export function useCreateInventoryItem() {
   });
 }
 
-export function useUpdateInventoryItem() {
+import { adjustInventory, getInventoryMovements } from '@/services/inventory.service';
+
+export function useAdjustInventoryItem() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Partial<InventoryItem> }) =>
-      updateInventoryItem(id, data),
+    mutationFn: ({ productId, quantity, reason, notes }: { productId: number; quantity: number; reason: string; notes?: string }) =>
+      adjustInventory(productId, quantity, reason, notes),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['inventory'] }),
+  });
+}
+
+export function useInventoryMovements(page = 1, limit = 20, userId?: string) {
+  return useQuery({
+    queryKey: ['inventory-movements', page, limit, userId],
+    queryFn: () => getInventoryMovements(page, limit, userId),
   });
 }

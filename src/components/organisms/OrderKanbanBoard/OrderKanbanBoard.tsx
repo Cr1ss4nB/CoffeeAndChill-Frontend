@@ -106,8 +106,8 @@ export function OrderKanbanBoard() {
   }
 
   if (isError) {
-    const detail = queryError?.response?.data?.detail;
-    const statusCode = queryError?.response?.status;
+    const detail = (queryError as any)?.response?.data?.detail;
+    const statusCode = (queryError as any)?.response?.status;
     let helperText = detail || 'Revisa la conexión con el backend.';
 
     if (statusCode === 401) {

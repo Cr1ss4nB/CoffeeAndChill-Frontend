@@ -1,42 +1,62 @@
 import type { User } from '@/types';
+import api from '@/api/api.client';
 
-const mockEmployees: User[] = [
-  { id: 'e1', name: 'Valentina Rojas', email: 'valentina@coffeechill.co', role: 'ADMIN', active: true },
-  { id: 'e2', name: 'Santiago Herrera', email: 'santiago@coffeechill.co', role: 'EMPLOYEE', active: true },
-  { id: 'e3', name: 'Camila Torres', email: 'camila@coffeechill.co', role: 'EMPLOYEE', active: true },
-  { id: 'e4', name: 'Andrés Medina', email: 'andres@coffeechill.co', role: 'EMPLOYEE', active: false },
-];
-
-// TODO: GET /employees
 export async function getEmployees(): Promise<User[]> {
-  return Promise.resolve([...mockEmployees]);
+  const response = await api.get('/admin/employees');
+  // Backend returns: employee_id, full_name, email, role, phone, is_active
+  // Frontend expects: id, name, email, role, active
+  return response.data.map((e: any) => ({
+    id: String(e.employee_id),
+    name: e.full_name,
+    email: e.email,
+    role: e.role?.toUpperCase() || 'EMPLOYEE',
+    active: e.is_active,
+  }));
 }
 
-// TODO: POST /employees
 export async function createEmployee(data: Omit<User, 'id'> & { password: string }): Promise<User> {
-  const newEmp: User = {
-    name: data.name,
+  const payload = {
+    full_name: data.name,
     email: data.email,
-    role: data.role,
-    active: data.active,
-    id: `e${mockEmployees.length + 1}`,
+    password: data.password,
+    role: data.role.toLowerCase(),
   };
-  mockEmployees.push(newEmp);
-  return Promise.resolve({ ...newEmp });
+  const response = await api.post('/admin/employees', payload);
+  const e = response.data;
+  return {
+    id: String(e.employee_id),
+    name: e.full_name,
+    email: e.email,
+    role: e.role?.toUpperCase() || 'EMPLOYEE',
+    active: e.is_active,
+  };
 }
 
-// TODO: PATCH /employees/:id
 export async function updateEmployee(id: string, data: Partial<User>): Promise<User> {
-  const emp = mockEmployees.find((e) => e.id === id);
-  if (!emp) throw new Error('Employee not found');
-  Object.assign(emp, data);
-  return Promise.resolve({ ...emp });
+  const payload: any = {};
+  if (data.name !== undefined) payload.full_name = data.name;
+  if (data.email !== undefined) payload.email = data.email;
+  if (data.role !== undefined) payload.role = data.role.toLowerCase();
+
+  const response = await api.put(`/admin/employees/${id}`, payload);
+  const e = response.data;
+  return {
+    id: String(e.employee_id),
+    name: e.full_name,
+    email: e.email,
+    role: e.role?.toUpperCase() || 'EMPLOYEE',
+    active: e.is_active,
+  };
 }
 
-// TODO: DELETE /employees/:id (soft delete)
 export async function deactivateEmployee(id: string): Promise<User> {
-  const emp = mockEmployees.find((e) => e.id === id);
-  if (!emp) throw new Error('Employee not found');
-  emp.active = false;
-  return Promise.resolve({ ...emp });
+  const response = await api.patch(`/admin/employees/${id}/status`, { is_active: false });
+  const e = response.data;
+  return {
+    id: String(e.employee_id),
+    name: e.full_name,
+    email: e.email,
+    role: e.role?.toUpperCase() || 'EMPLOYEE',
+    active: e.is_active,
+  };
 }
