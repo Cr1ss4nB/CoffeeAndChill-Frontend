@@ -42,26 +42,33 @@ export function RegisterForm() {
     try {
       // 1. Registrar en el backend
       await api.post('/auth/register', {
-        full_name: name,
-        email,
+        full_name: name.trim(),
+        email: email.trim(),
         password,
       });
 
-      // 2. Auto-login con las credenciales recién creadas
-      await login({ email, password });
+      // 2. Pequeña pausa para asegurar sincronización en DB (opcional pero recomendado)
+      await new Promise((r) => setTimeout(r, 200));
 
-      toast.success('¡Bienvenido a Coffee & Chill!');
-      navigate('/menu');
+      // 2. Auto-login con las credenciales recién creadas
+      try {
+        await login({ email, password });
+        toast.success('¡Bienvenido a Coffee & Chill!');
+        navigate('/menu');
+      } catch (loginError) {
+        toast.success('Cuenta creada. Por favor inicia sesión.');
+        navigate('/login');
+      }
     } catch (error: any) {
       const detail = error.response?.data?.detail;
       if (typeof detail === 'string') {
         toast.error(detail);
       } else if (Array.isArray(detail)) {
-        // Pydantic validation errors
-        const msg = detail.map((d: any) => d.msg).join(', ');
+        // Pydantic validation errors (lista de errores del BE)
+        const msg = detail.map((d: any) => d.msg || d.message).join(', ');
         toast.error(msg);
       } else {
-        toast.error('Error al crear la cuenta');
+        toast.error('Lo sentimos, no pudimos crear tu cuenta. Revisa los datos.');
       }
     } finally {
       setLoading(false);
