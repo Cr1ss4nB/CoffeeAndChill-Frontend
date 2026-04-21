@@ -16,6 +16,8 @@ interface UIState {
   getCartTotal: () => number;
   activeOrderId: string | null;
   setActiveOrderId: (id: string | null) => void;
+  tableId: number | null;
+  setTableId: (id: number | null) => void;
 }
 
 export const useUIStore = create<UIState>()((set, get) => ({
@@ -64,4 +66,7 @@ export const useUIStore = create<UIState>()((set, get) => ({
 
   activeOrderId: null,
   setActiveOrderId: (id) => set({ activeOrderId: id }),
+
+  tableId: null,
+  setTableId: (id) => set({ tableId: id }),
 }));

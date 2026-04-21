@@ -10,7 +10,7 @@ import { useAuthStore } from '@/store/auth.store';
 import { useUIStore } from '@/store/ui.store';
 
 export function CartDrawer() {
-  const { cartOpen, closeCart, cartItems, getCartTotal, clearCart, setActiveOrderId } = useUIStore();
+  const { cartOpen, closeCart, cartItems, getCartTotal, clearCart, setActiveOrderId, tableId } = useUIStore();
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -32,7 +32,8 @@ export function CartDrawer() {
 
     try {
       const payload = {
-        order_type: 'TAKEAWAY',
+        order_type: tableId ? 'DINE_IN' : 'TAKEAWAY',
+        table_id: tableId || null,
         items: cartItems.map((item) => ({
           product_id: Number(item.product.id),
           quantity: item.quantity,
@@ -98,12 +99,12 @@ export function CartDrawer() {
             <div className="flex items-center justify-between px-5 py-4 border-b border-white/20">
               <div className="flex items-center gap-2">
                 <ShoppingBag size={20} className="text-accent-primary" />
-                <h2 className="font-display font-bold text-lg text-text-primary">Tu pedido</h2>
-                {cartItems.length > 0 && (
-                  <span className="ml-1 px-2 py-0.5 rounded-full bg-accent-primary/10 text-accent-primary text-xs font-bold">
-                    {cartItems.length}
-                  </span>
-                )}
+                <div className="flex flex-col">
+                  <h2 className="font-display font-bold text-lg text-text-primary">Tu pedido</h2>
+                  <p className="text-[10px] uppercase tracking-wider font-bold text-accent-primary leading-none mt-0.5">
+                    {tableId ? `Mesa #${tableId} • LOCAL` : 'PARA LLEVAR'}
+                  </p>
+                </div>
               </div>
               <button
                 onClick={closeCart}

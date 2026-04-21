@@ -1,9 +1,11 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useCategories, useProducts } from '@/hooks/useCatalog';
 import { ProductCard } from '@/components/molecules/ProductCard/ProductCard';
 import { AppShellTemplate } from '@/components/templates/AppShellTemplate/AppShellTemplate';
 import { Coffee, Palette, Store, Filter } from 'lucide-react';
 import { Button } from '@/components/atoms/Button/Button';
+import { useUIStore } from '@/store/ui.store';
 
 const iconMap: Record<string, any> = {
   'Bebidas Calientes': Coffee,
@@ -12,7 +14,17 @@ const iconMap: Record<string, any> = {
 };
 
 export function MenuPage() {
+  const [searchParams] = useSearchParams();
+  const setTableId = useUIStore((s) => s.setTableId);
   const [selectedCategory, setSelectedCategory] = useState<number | undefined>(undefined);
+
+  useEffect(() => {
+    const mesaValue = searchParams.get('mesa');
+    if (mesaValue) {
+      setTableId(Number(mesaValue));
+    }
+  }, [searchParams, setTableId]);
+
   const { data: categories } = useCategories();
   const { data: products, isLoading: isLoadingProds } = useProducts(selectedCategory);
 
