@@ -1,11 +1,18 @@
+import { useState } from 'react';
+import axios from 'axios';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ShoppingBag, X } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { CartItem } from '@/components/molecules/CartItem/CartItem';
 import { Button } from '@/components/atoms/Button/Button';
+import api from '@/api/api.client';
+import { useAuthStore } from '@/store/auth.store';
 import { useUIStore } from '@/store/ui.store';
 
 export function CartDrawer() {
-  const { cartOpen, closeCart, cartItems, getCartTotal, clearCart } = useUIStore();
+  const { cartOpen, closeCart, cartItems, getCartTotal, clearCart, setActiveOrderId } = useUIStore();
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const total = getCartTotal();
 
@@ -14,6 +21,55 @@ export function CartDrawer() {
     currency: 'COP',
     minimumFractionDigits: 0,
   }).format(total);
+
+  async function handleCheckout() {
+    if (!isAuthenticated) {
+      toast.error('Inicia sesión para realizar tu pedido');
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const payload = {
+        order_type: 'TAKEAWAY',
+        items: cartItems.map((item) => ({
+          product_id: Number(item.product.id),
+          quantity: item.quantity,
+          special_instructions: item.customizations ? JSON.stringify(item.customizations) : undefined,
+        })),
+      };
+
+      const response = await api.post('/orders/checkout', payload);
+      const orderId = response.data?.order_id;
+
+      if (orderId) {
+        setActiveOrderId(String(orderId));
+      }
+
+      clearCart();
+      closeCart();
+      const message = orderId ? `Pedido realizado (#${orderId})` : 'Pedido realizado';
+      toast.success(message);
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const status = error.response?.status;
+        const detail = error.response?.data?.detail;
+
+        if (status === 401) {
+          toast.error('Tu sesión expiró. Vuelve a iniciar sesión.');
+        } else if (status === 403) {
+          toast.error('No tienes permiso para realizar pedidos.');
+        } else {
+          toast.error(detail || 'No se pudo crear el pedido');
+        }
+      } else {
+        toast.error('No se pudo crear el pedido');
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
 
   return (
     <AnimatePresence>
@@ -79,7 +135,7 @@ export function CartDrawer() {
                   <span className="text-lg font-bold text-text-primary">{formattedTotal}</span>
                 </div>
 
-                <Button className="w-full" size="lg">
+                <Button className="w-full" size="lg" loading={isSubmitting} onClick={handleCheckout}>
                   Realizar pedido
                 </Button>
                 <button

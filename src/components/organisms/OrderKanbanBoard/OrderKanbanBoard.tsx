@@ -4,6 +4,7 @@ import {
   PointerSensor,
   useSensor,
   useSensors,
+  useDroppable,
   type DragEndEvent,
 } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
@@ -34,16 +35,27 @@ interface KanbanColumnProps {
   orders: BoardOrder[];
 }
 
-function Column({ column, orders }: KanbanColumnProps) {
+function Column({ column, orders }: Readonly<KanbanColumnProps>) {
+  const { setNodeRef, isOver } = useDroppable({
+    id: `column-${column.key}`,
+    data: {
+      type: 'column',
+      status: column.key,
+    },
+  });
+
   return (
-    <div className={`flex flex-col gap-3 min-h-[200px] p-3 rounded-2xl bg-white/20 border ${column.color}`}>
+    <div
+      ref={setNodeRef}
+      className={`flex flex-col gap-3 min-h-[200px] p-3 rounded-2xl bg-white/20 border ${column.color} ${isOver ? 'ring-2 ring-accent-primary/30' : ''}`}
+    >
       <div className="flex items-center justify-between px-1">
         <h3 className="font-semibold text-sm text-text-primary">{column.label}</h3>
         <span className="text-xs font-bold bg-white/60 text-text-secondary px-2 py-0.5 rounded-full">
           {orders.length}
         </span>
       </div>
-      <SortableContext items={orders.map((o) => o.order_id)} strategy={verticalListSortingStrategy}>
+      <SortableContext items={orders.map((o) => `order-${o.order_id}`)} strategy={verticalListSortingStrategy}>
         {orders.map((order) => (
           <OrderCard key={order.order_id} order={order} />
         ))}
@@ -56,7 +68,7 @@ function Column({ column, orders }: KanbanColumnProps) {
 }
 
 export function OrderKanbanBoard() {
-  const { data: orders, isLoading, isError } = useOrdersBoard();
+  const { data: orders, isLoading, isError, error: queryError } = useOrdersBoard();
   const updateStatus = useUpdateOrderStatus();
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
@@ -67,8 +79,18 @@ export function OrderKanbanBoard() {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
 
-    const orderId = Number(active.id);
-    const targetColumn = over.id as KanbanColumn;
+    const activeData = active.data.current as { orderId?: number; status?: KanbanColumn } | undefined;
+    const overData = over.data.current as { type?: string; status?: KanbanColumn } | undefined;
+
+    const orderId = activeData?.orderId;
+    const sourceStatus = activeData?.status;
+    let targetColumn: KanbanColumn | undefined;
+
+    if (overData?.type === 'column' || overData?.type === 'order') {
+      targetColumn = overData.status;
+    }
+
+    if (!orderId || !targetColumn || sourceStatus === targetColumn) return;
 
     if (Object.keys(STATUS_FLOW).includes(targetColumn)) {
       updateStatus.mutate({ orderId, status: targetColumn });
@@ -84,12 +106,20 @@ export function OrderKanbanBoard() {
   }
 
   if (isError) {
+    const detail = queryError?.response?.data?.detail;
+    const statusCode = queryError?.response?.status;
+    let helperText = detail || 'Revisa la conexión con el backend.';
+
+    if (statusCode === 401) {
+      helperText = 'Tu sesión no es válida o expiró. Vuelve a iniciar sesión.';
+    } else if (statusCode === 403) {
+      helperText = 'Tu usuario no tiene permisos de staff para ver pedidos.';
+    }
+
     return (
       <div className="flex flex-col items-center justify-center h-64 gap-2">
         <p className="text-text-secondary font-medium">No se pudo cargar el tablero de pedidos</p>
-        <p className="text-sm text-text-secondary/60">
-          El endpoint GET /orders está pendiente en el backend.
-        </p>
+        <p className="text-sm text-text-secondary/60">{helperText}</p>
       </div>
     );
   }

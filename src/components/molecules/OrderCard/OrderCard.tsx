@@ -1,6 +1,8 @@
 import { Clock, ShoppingBag } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { OrderStatusBadge } from '@/components/molecules/OrderStatusBadge/OrderStatusBadge';
 import type { BoardOrder } from '@/hooks/useOrdersBoard';
 
@@ -9,14 +11,36 @@ interface OrderCardProps {
   onStatusChange?: (orderId: number, newStatus: string) => void;
 }
 
-export function OrderCard({ order }: OrderCardProps) {
+export function OrderCard({ order }: Readonly<OrderCardProps>) {
+  const sortableId = `order-${order.order_id}`;
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: sortableId,
+    data: {
+      type: 'order',
+      orderId: order.order_id,
+      status: order.status,
+    },
+  });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.8 : 1,
+  };
+
   const timeAgo = formatDistanceToNow(new Date(order.order_date), {
     addSuffix: true,
     locale: es,
   });
 
   return (
-    <div className="glass rounded-2xl p-4 space-y-3 hover:border-accent-primary/20 transition-colors cursor-grab active:cursor-grabbing">
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      className="glass rounded-2xl p-4 space-y-3 hover:border-accent-primary/20 transition-colors cursor-grab active:cursor-grabbing"
+    >
       <div className="flex items-start justify-between gap-2">
         <div>
           <p className="text-xs text-text-secondary/60 font-medium">Pedido #{order.order_id}</p>
