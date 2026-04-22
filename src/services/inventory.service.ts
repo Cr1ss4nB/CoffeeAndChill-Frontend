@@ -1,56 +1,81 @@
-import type { InventoryItem, StockStatus } from '@/types';
+import type { InventoryItem } from '@/types';
+import api from '@/api/api.client';
 
-function calcStatus(stock: number, minStock: number): StockStatus {
-  if (stock === 0) return 'OUT';
-  if (stock <= minStock) return 'LOW';
-  return 'OK';
-}
-
-const mockInventory: InventoryItem[] = [
-  // Consumo
-  { id: 'i1', name: 'Café en grano (kg)', category: 'consumo', subcategory: 'Bebidas', stock: 8, unit: 'kg', minStock: 3, status: 'OK' },
-  { id: 'i2', name: 'Leche entera (L)', category: 'consumo', subcategory: 'Bebidas', stock: 12, unit: 'L', minStock: 5, status: 'OK' },
-  { id: 'i3', name: 'Leche de avena (L)', category: 'consumo', subcategory: 'Bebidas', stock: 2, unit: 'L', minStock: 3, status: 'LOW' },
-  { id: 'i4', name: 'Matcha ceremonial (g)', category: 'consumo', subcategory: 'Bebidas', stock: 150, unit: 'g', minStock: 50, status: 'OK' },
-  { id: 'i5', name: 'Chocolate belga (kg)', category: 'consumo', subcategory: 'Bebidas', stock: 1, unit: 'kg', minStock: 2, status: 'LOW' },
-  { id: 'i6', name: 'Croissants (ud)', category: 'consumo', subcategory: 'Pasabocas', stock: 15, unit: 'ud', minStock: 5, status: 'OK' },
-  { id: 'i7', name: 'Aguacate (ud)', category: 'consumo', subcategory: 'Pasabocas', stock: 0, unit: 'ud', minStock: 4, status: 'OUT' },
-  { id: 'i8', name: 'Pan sourdough (ud)', category: 'consumo', subcategory: 'Pasabocas', stock: 6, unit: 'ud', minStock: 4, status: 'OK' },
-
-  // Creativo
-  { id: 'i9', name: 'Arcilla blanca (kg)', category: 'creativo', subcategory: 'Cerámica', stock: 25, unit: 'kg', minStock: 10, status: 'OK' },
-  { id: 'i10', name: 'Esmalte transparente (L)', category: 'creativo', subcategory: 'Cerámica', stock: 3, unit: 'L', minStock: 2, status: 'OK' },
-  { id: 'i11', name: 'Kit Primavera', category: 'creativo', subcategory: 'Kits de pintura', stock: 5, unit: 'kit', minStock: 2, status: 'OK', colors: ['#E8B4B8', '#A8D5BA', '#F5E6A8', '#B8C9E8', '#F2C4A0', '#C8A8E8'] },
-  { id: 'i12', name: 'Kit Atardecer', category: 'creativo', subcategory: 'Kits de pintura', stock: 1, unit: 'kit', minStock: 2, status: 'LOW', colors: ['#E86850', '#F4A460', '#FFD700', '#FF6B81', '#C85A54', '#8B4513'] },
-  { id: 'i13', name: 'Kit Océano', category: 'creativo', subcategory: 'Kits de pintura', stock: 3, unit: 'kit', minStock: 2, status: 'OK', colors: ['#1E90FF', '#00CED1', '#20B2AA', '#4682B4', '#5F9EA0', '#B0E0E6'] },
-  { id: 'i14', name: 'Pintura acrílica Rojo', category: 'creativo', subcategory: 'Pinturas', stock: 8, unit: 'ud', minStock: 3, status: 'OK', volume: '50ml' },
-  { id: 'i15', name: 'Pintura acrílica Azul', category: 'creativo', subcategory: 'Pinturas', stock: 2, unit: 'ud', minStock: 3, status: 'LOW', volume: '100ml' },
-  { id: 'i16', name: 'Pintura acrílica Dorado', category: 'creativo', subcategory: 'Pinturas', stock: 12, unit: 'ud', minStock: 3, status: 'OK', volume: '25ml' },
-  { id: 'i17', name: 'Pinceles redondos (set)', category: 'creativo', subcategory: 'Herramientas', stock: 7, unit: 'set', minStock: 3, status: 'OK' },
-  { id: 'i18', name: 'Pinceles planos (set)', category: 'creativo', subcategory: 'Herramientas', stock: 0, unit: 'set', minStock: 3, status: 'OUT' },
-];
-
-// TODO: GET /inventory
 export async function getInventoryItems(): Promise<InventoryItem[]> {
-  return Promise.resolve([...mockInventory]);
+  const response = await api.get('/inventory?limit=100');
+  // Backend returns: product_id, name, category, price, stock_quantity, status, is_low_stock
+  return response.data.items.map((i: any) => ({
+    id: String(i.product_id),
+    name: i.name,
+    category: i.category.toLowerCase() === 'creativo' ? 'creativo' : 'consumo',
+    subcategory: i.category,
+    stock: i.stock_quantity,
+    unit: i.name.toLowerCase().includes('kit') ? 'kit' : 'ud', 
+    minStock: 10,
+    status: i.is_low_stock ? 'LOW' : 'OK',
+    colors: i.name.toLowerCase().includes('kit primavera') ? ['#E8B4B8', '#A8D5BA', '#F5E6A8', '#B8C9E8', '#F2C4A0', '#C8A8E8'] :
+            i.name.toLowerCase().includes('kit atardecer') ? ['#E86850', '#F4A460', '#FFD700', '#FF6B81', '#C85A54', '#8B4513'] :
+            i.name.toLowerCase().includes('kit') ? ['#1E90FF', '#00CED1', '#20B2AA', '#4682B4', '#5F9EA0', '#B0E0E6'] : undefined,
+    volume: i.name.toLowerCase().includes('pintura') ? '50ml' : undefined
+  }));
 }
 
-// TODO: POST /inventory
 export async function createInventoryItem(data: Omit<InventoryItem, 'id' | 'status'>): Promise<InventoryItem> {
-  const newItem: InventoryItem = {
-    ...data,
-    id: `i${mockInventory.length + 1}`,
-    status: calcStatus(data.stock, data.minStock),
+  // En el sistema real, "crear inventario" significa hacer un Ajuste INicial o
+  // la creación se hace desde Productos. Aquí creamos un producto nuevo
+  // y luego hacemos un ajuste de inventario si el stock > 0
+  
+  // 1. Crear producto
+  const productPayload = {
+    name: data.name,
+    price: 1000, // Dummy price, inventory manager usually doesn't set price, but it's required for ProductCreate
+    stock_quantity: 0, // start with 0, then adjust to get traces
+    category_id: data.category === 'creativo' ? 2 : 1, // mapping category id
+    description: data.subcategory,
+    status: 'ACTIVE'
   };
-  mockInventory.push(newItem);
-  return Promise.resolve({ ...newItem });
+  
+  const p_res = await api.post('/products', productPayload);
+  const newId = p_res.data.product_id;
+
+  // 2. Hacer el adjustment inicial si stock > 0
+  if (data.stock > 0) {
+    await api.post('/inventory/adjustments', {
+      product_id: newId,
+      quantity: data.stock,
+      reason: 'RECEIPT',
+      notes: 'Initial inventory creation'
+    });
+  }
+
+  return {
+    ...data,
+    id: String(newId),
+    status: data.stock <= (data.minStock || 10) ? (data.stock === 0 ? 'OUT' : 'LOW') : 'OK',
+  };
 }
 
-// TODO: PATCH /inventory/:id
-export async function updateInventoryItem(id: string, data: Partial<InventoryItem>): Promise<InventoryItem> {
-  const item = mockInventory.find((i) => i.id === id);
-  if (!item) throw new Error('Item not found');
-  Object.assign(item, data);
-  item.status = calcStatus(item.stock, item.minStock);
-  return Promise.resolve({ ...item });
+export async function updateInventoryItem(_id: string, _data: Partial<InventoryItem>): Promise<InventoryItem> {
+  // Actualizar inventario significa hacer una corrección/ajuste.
+  // El UI envía "stock" como el total deseado. El backend pide el ajuste.
+  // Es mejor crear una función explícita para ajustes.
+  throw new Error('Please use adjustInventory instead of generic update');
+}
+
+export async function adjustInventory(productId: number, quantity: number, reason: string, notes?: string): Promise<any> {
+    const response = await api.post('/inventory/adjustments', {
+        product_id: productId,
+        quantity,
+        reason,
+        notes
+    });
+    return response.data;
+}
+
+export async function getInventoryMovements(page = 1, limit = 20, userId?: string): Promise<any> {
+    const url = userId 
+      ? `/inventory/movements?page=${page}&limit=${limit}&system_user_id=${userId}`
+      : `/inventory/movements?page=${page}&limit=${limit}`;
+    const response = await api.get(url);
+    return response.data;
 }

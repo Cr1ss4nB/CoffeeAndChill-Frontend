@@ -3,6 +3,8 @@ import { useNavigate, Link } from 'react-router-dom';
 import { Coffee, Mail, Lock, User } from 'lucide-react';
 import { FormField } from '@/components/molecules/FormField/FormField';
 import { Button } from '@/components/atoms/Button/Button';
+import { useAuthStore } from '@/store/auth.store';
+import api from '@/api/api.client';
 import toast from 'react-hot-toast';
 
 interface RegisterFormErrors {
@@ -19,13 +21,14 @@ export function RegisterForm() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [errors, setErrors] = useState<RegisterFormErrors>({});
   const [loading, setLoading] = useState(false);
+  const login = useAuthStore((s: any) => s.login);
   const navigate = useNavigate();
 
   function validate(): boolean {
     const next: RegisterFormErrors = {};
     if (!name.trim()) next.name = 'El nombre es obligatorio';
     if (!email.trim()) next.email = 'El correo es obligatorio';
-    if (password.length < 6) next.password = 'Mínimo 6 caracteres';
+    if (password.length < 8) next.password = 'Mínimo 8 caracteres';
     if (confirmPassword !== password) next.confirmPassword = 'Las contraseñas no coinciden';
     setErrors(next);
     return Object.keys(next).length === 0;
@@ -36,12 +39,40 @@ export function RegisterForm() {
     if (!validate()) return;
     setLoading(true);
 
-    // TODO: Replace with actual API call to POST /auth/register
-    await new Promise((r) => setTimeout(r, 800));
+    try {
+      // 1. Registrar en el backend
+      await api.post('/auth/register', {
+        full_name: name.trim(),
+        email: email.trim(),
+        password,
+      });
 
-    toast.success('Cuenta creada. ¡Bienvenido a Coffee & Chill!');
-    navigate('/login');
-    setLoading(false);
+      // 2. Pequeña pausa para asegurar sincronización en DB (opcional pero recomendado)
+      await new Promise((r) => setTimeout(r, 200));
+
+      // 2. Auto-login con las credenciales recién creadas
+      try {
+        await login({ email, password });
+        toast.success('¡Bienvenido a Coffee & Chill!');
+        navigate('/menu');
+      } catch (loginError) {
+        toast.success('Cuenta creada. Por favor inicia sesión.');
+        navigate('/login');
+      }
+    } catch (error: any) {
+      const detail = error.response?.data?.detail;
+      if (typeof detail === 'string') {
+        toast.error(detail);
+      } else if (Array.isArray(detail)) {
+        // Pydantic validation errors (lista de errores del BE)
+        const msg = detail.map((d: any) => d.msg || d.message).join(', ');
+        toast.error(msg);
+      } else {
+        toast.error('Lo sentimos, no pudimos crear tu cuenta. Revisa los datos.');
+      }
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (

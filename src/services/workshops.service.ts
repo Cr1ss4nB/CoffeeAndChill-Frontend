@@ -1,38 +1,87 @@
 import type { Workshop, Reservation } from '@/types';
 
-const mockWorkshops: Workshop[] = [
-  { id: 'w1', name: 'Cerámica para Principiantes', description: 'Aprende las bases del torno y moldeo a mano', date: '2026-05-08', time: '10:00', totalSpots: 12, reservedSpots: 8, price: 85000 },
-  { id: 'w2', name: 'Pintura en Cerámica', description: 'Técnicas de esmaltado y pinceladas decorativas', date: '2026-05-10', time: '15:00', totalSpots: 10, reservedSpots: 10, price: 65000 },
-  { id: 'w3', name: 'Acuarela Botánica', description: 'Pinta flores y hojas con técnica húmedo sobre húmedo', date: '2026-05-15', time: '11:00', totalSpots: 15, reservedSpots: 5, price: 55000 },
-  { id: 'w4', name: 'Noche de Cerámica & Vino', description: 'Sesión nocturna con copa de vino incluida', date: '2026-05-20', time: '19:00', totalSpots: 8, reservedSpots: 3, price: 120000 },
-];
+import api from '@/api/api.client';
 
-const mockReservations: Reservation[] = [
-  { id: 'r1', workshopId: 'w1', name: 'María García', email: 'maria@email.com', phone: '3001234567', attendees: 2, attended: false, createdAt: '2026-04-20T10:00:00Z' },
-  { id: 'r2', workshopId: 'w1', name: 'Carlos López', email: 'carlos@email.com', phone: '3109876543', attendees: 1, attended: false, createdAt: '2026-04-21T14:30:00Z' },
-  { id: 'r3', workshopId: 'w3', name: 'Ana Martínez', email: 'ana@email.com', phone: '3201112233', attendees: 3, attended: false, createdAt: '2026-04-25T09:00:00Z' },
-];
-
-// TODO: GET /workshops
-export async function getWorkshops(): Promise<Workshop[]> {
-  return Promise.resolve([...mockWorkshops]);
+interface WorkshopSchedulePayload {
+  schedule_date: string;
+  start_time: string;
+  end_time: string;
+  available_slots: number;
 }
 
-// TODO: GET /workshops/:id/reservations
-export async function getReservations(workshopId: string): Promise<Reservation[]> {
-  return Promise.resolve(mockReservations.filter((r) => r.workshopId === workshopId));
+export interface CreateWorkshopPayload {
+  name: string;
+  category_id: number;
+  description?: string;
+  duration_minutes: number;
+  max_capacity: number;
+  price: number;
+  instructor_name?: string;
+  schedules: WorkshopSchedulePayload[];
 }
 
-// TODO: POST /workshops/:id/reservations
-export async function createReservation(data: Omit<Reservation, 'id' | 'attended' | 'createdAt'>): Promise<Reservation> {
-  const newRes: Reservation = {
-    ...data,
-    id: `r${mockReservations.length + 1}`,
-    attended: false,
-    createdAt: new Date().toISOString(),
+function mapWorkshop(w: any): Workshop {
+  return {
+    id: String(w.workshop_id),
+    name: w.name,
+    description: w.description || '',
+    date: w.schedules?.[0]?.schedule_date || 'TBD',
+    time: w.schedules?.[0]?.start_time || 'TBD',
+    price: w.price,
+    totalSpots: w.max_capacity,
+    reservedSpots: w.max_capacity - (w.schedules?.[0]?.available_slots || 0),
   };
-  mockReservations.push(newRes);
-  const workshop = mockWorkshops.find((w) => w.id === data.workshopId);
-  if (workshop) workshop.reservedSpots += data.attendees;
-  return Promise.resolve({ ...newRes });
+}
+
+export async function createWorkshop(data: CreateWorkshopPayload): Promise<Workshop> {
+  const response = await api.post('/workshops', data);
+  return mapWorkshop(response.data);
+}
+
+export async function updateWorkshop(id: string, data: Partial<Workshop>): Promise<Workshop> {
+  const response = await api.put(`/workshops/${id}`, data);
+  return mapWorkshop(response.data);
+}
+
+export async function deleteWorkshop(id: string): Promise<void> {
+  await api.delete(`/workshops/${id}`);
+}
+
+export async function getWorkshops(): Promise<Workshop[]> {
+  const response = await api.get('/workshops');
+  return response.data.map((w: any) => mapWorkshop(w));
+}
+
+export async function getReservations(workshopId: string): Promise<Reservation[]> {
+  const response = await api.get(`/workshops/${workshopId}/reservations`);
+  return response.data.map((r: any) => ({
+    id: String(r.reservation_id),
+    workshopId: String(r.workshop_id),
+    name: r.full_name,
+    email: r.email,
+    phone: r.phone,
+    attendees: r.attendees,
+    attended: r.attended,
+    createdAt: r.created_at
+  }));
+}
+
+export async function createReservation(data: Omit<Reservation, 'id' | 'attended' | 'createdAt'>): Promise<Reservation> {
+  const response = await api.post(`/workshops/${data.workshopId}/reservations`, {
+    full_name: data.name,
+    email: data.email,
+    phone: data.phone,
+    attendees: data.attendees
+  });
+  const r = response.data;
+  return {
+    id: String(r.reservation_id),
+    workshopId: String(r.workshop_id),
+    name: r.full_name,
+    email: r.email,
+    phone: r.phone,
+    attendees: r.attendees,
+    attended: r.attended,
+    createdAt: r.created_at
+  };
 }

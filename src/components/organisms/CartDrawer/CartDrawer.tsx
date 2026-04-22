@@ -1,11 +1,18 @@
+import { useState } from 'react';
+import axios from 'axios';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ShoppingBag, X } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { CartItem } from '@/components/molecules/CartItem/CartItem';
 import { Button } from '@/components/atoms/Button/Button';
+import api from '@/api/api.client';
+import { useAuthStore } from '@/store/auth.store';
 import { useUIStore } from '@/store/ui.store';
 
 export function CartDrawer() {
-  const { cartOpen, closeCart, cartItems, getCartTotal, clearCart } = useUIStore();
+  const { cartOpen, closeCart, cartItems, getCartTotal, clearCart, setActiveOrderId, tableId } = useUIStore();
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const total = getCartTotal();
 
@@ -14,6 +21,56 @@ export function CartDrawer() {
     currency: 'COP',
     minimumFractionDigits: 0,
   }).format(total);
+
+  async function handleCheckout() {
+    if (!isAuthenticated) {
+      toast.error('Inicia sesión para realizar tu pedido');
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const payload = {
+        order_type: tableId ? 'DINE_IN' : 'TAKEAWAY',
+        table_id: tableId || null,
+        items: cartItems.map((item) => ({
+          product_id: Number(item.product.id),
+          quantity: item.quantity,
+          special_instructions: item.customizations ? JSON.stringify(item.customizations) : undefined,
+        })),
+      };
+
+      const response = await api.post('/orders/checkout', payload);
+      const orderId = response.data?.order_id;
+
+      if (orderId) {
+        setActiveOrderId(String(orderId));
+      }
+
+      clearCart();
+      closeCart();
+      const message = orderId ? `Pedido realizado (#${orderId})` : 'Pedido realizado';
+      toast.success(message);
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const status = error.response?.status;
+        const detail = error.response?.data?.detail;
+
+        if (status === 401) {
+          toast.error('Tu sesión expiró. Vuelve a iniciar sesión.');
+        } else if (status === 403) {
+          toast.error('No tienes permiso para realizar pedidos.');
+        } else {
+          toast.error(detail || 'No se pudo crear el pedido');
+        }
+      } else {
+        toast.error('No se pudo crear el pedido');
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
 
   return (
     <AnimatePresence>
@@ -42,12 +99,12 @@ export function CartDrawer() {
             <div className="flex items-center justify-between px-5 py-4 border-b border-white/20">
               <div className="flex items-center gap-2">
                 <ShoppingBag size={20} className="text-accent-primary" />
-                <h2 className="font-display font-bold text-lg text-text-primary">Tu pedido</h2>
-                {cartItems.length > 0 && (
-                  <span className="ml-1 px-2 py-0.5 rounded-full bg-accent-primary/10 text-accent-primary text-xs font-bold">
-                    {cartItems.length}
-                  </span>
-                )}
+                <div className="flex flex-col">
+                  <h2 className="font-display font-bold text-lg text-text-primary">Tu pedido</h2>
+                  <p className="text-[10px] uppercase tracking-wider font-bold text-accent-primary leading-none mt-0.5">
+                    {tableId ? `Mesa #${tableId} • LOCAL` : 'PARA LLEVAR'}
+                  </p>
+                </div>
               </div>
               <button
                 onClick={closeCart}
@@ -79,7 +136,7 @@ export function CartDrawer() {
                   <span className="text-lg font-bold text-text-primary">{formattedTotal}</span>
                 </div>
 
-                <Button className="w-full" size="lg">
+                <Button className="w-full" size="lg" loading={isSubmitting} onClick={handleCheckout}>
                   Realizar pedido
                 </Button>
                 <button

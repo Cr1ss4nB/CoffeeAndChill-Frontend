@@ -25,9 +25,8 @@ export interface BoardOrder {
 
 export type KanbanColumn = 'PENDING' | 'IN_PROGRESS' | 'COMPLETED';
 
-// ── TODO: endpoint GET /orders pendiente en el BE (feature/4.2-orders-backend)
-//          Implementar cuando el equipo BE entregue el endpoint.
-//          Se espera: GET /orders?status=PENDING,IN_PROGRESS,COMPLETED
+// ── Orders board endpoint ────────────────────────────────────────────────────
+// GET /orders returns staff-visible orders for the kanban board.
 // ──────────────────────────────────────────────────────────────────────────────
 
 const ORDERS_ENDPOINT = '/orders';

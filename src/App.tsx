@@ -24,6 +24,8 @@ const WorkshopsPage = lazy(() => import('@/pages/WorkshopsPage'));
 
 const EmployeesPage = lazy(() => import('@/pages/EmployeesPage'));
 const QRManagementPage = lazy(() => import('@/pages/QRManagementPage'));
+const TablesPage = lazy(() => import('@/pages/TablesPage'));
+const ProductsPage = lazy(() => import('@/pages/ProductsPage'));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -108,6 +110,28 @@ export default function App() {
                 <ProtectedRoute>
                   <RoleGuard allowedRoles={['ADMIN']}>
                     <EmployeesPage />
+                  </RoleGuard>
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/products"
+              element={
+                <ProtectedRoute>
+                  <RoleGuard allowedRoles={['ADMIN', 'EMPLOYEE']}>
+                    <ProductsPage />
+                  </RoleGuard>
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/tables"
+              element={
+                <ProtectedRoute>
+                  <RoleGuard allowedRoles={['ADMIN']}>
+                    <TablesPage />
                   </RoleGuard>
                 </ProtectedRoute>
               }
