@@ -2,10 +2,26 @@ import type { Workshop, Reservation } from '@/types';
 
 import api from '@/api/api.client';
 
-export async function getWorkshops(): Promise<Workshop[]> {
-  const response = await api.get('/workshops');
-  // Map backend WorkshopResponse to frontend Workshop type
-  return response.data.map((w: any) => ({
+interface WorkshopSchedulePayload {
+  schedule_date: string;
+  start_time: string;
+  end_time: string;
+  available_slots: number;
+}
+
+export interface CreateWorkshopPayload {
+  name: string;
+  category_id: number;
+  description?: string;
+  duration_minutes: number;
+  max_capacity: number;
+  price: number;
+  instructor_name?: string;
+  schedules: WorkshopSchedulePayload[];
+}
+
+function mapWorkshop(w: any): Workshop {
+  return {
     id: String(w.workshop_id),
     name: w.name,
     description: w.description || '',
@@ -13,8 +29,27 @@ export async function getWorkshops(): Promise<Workshop[]> {
     time: w.schedules?.[0]?.start_time || 'TBD',
     price: w.price,
     totalSpots: w.max_capacity,
-    reservedSpots: w.max_capacity - (w.schedules?.[0]?.available_slots || 0)
-  }));
+    reservedSpots: w.max_capacity - (w.schedules?.[0]?.available_slots || 0),
+  };
+}
+
+export async function createWorkshop(data: CreateWorkshopPayload): Promise<Workshop> {
+  const response = await api.post('/workshops', data);
+  return mapWorkshop(response.data);
+}
+
+export async function updateWorkshop(id: string, data: Partial<Workshop>): Promise<Workshop> {
+  const response = await api.put(`/workshops/${id}`, data);
+  return mapWorkshop(response.data);
+}
+
+export async function deleteWorkshop(id: string): Promise<void> {
+  await api.delete(`/workshops/${id}`);
+}
+
+export async function getWorkshops(): Promise<Workshop[]> {
+  const response = await api.get('/workshops');
+  return response.data.map((w: any) => mapWorkshop(w));
 }
 
 export async function getReservations(workshopId: string): Promise<Reservation[]> {

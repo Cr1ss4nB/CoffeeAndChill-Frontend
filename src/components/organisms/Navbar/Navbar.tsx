@@ -6,7 +6,7 @@ interface NavbarProps {
   title: string;
 }
 
-export function Navbar({ title }: NavbarProps) {
+export function Navbar({ title }: Readonly<NavbarProps>) {
   const user = useAuthStore((s) => s.user);
 
   return (
