@@ -69,7 +69,6 @@ export default function WorkshopsPage() {
     <DashboardTemplate title="Talleres">
       {isAdmin && (
         <div className="mb-4 flex justify-end">
-          <SearchBar value={search} onChange={setSearch} placeholder="Buscar producto..." />
           <Button size="sm" onClick={() => setShowForm(true)}>
             Nuevo Taller
           </Button>
