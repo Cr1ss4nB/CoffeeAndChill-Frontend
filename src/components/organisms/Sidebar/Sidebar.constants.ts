@@ -17,5 +17,4 @@ export const navItems: NavItem[] = [
   { to: '/dashboard',  icon: LayoutDashboard,  label: 'Dashboard',  adminOnly: true  },
   { to: '/employees',  icon: Users,            label: 'Empleados',  adminOnly: true  },
   { to: '/tables',     icon: ListOrdered,      label: 'Mesas',      adminOnly: true  },
-  { to: '/qr',         icon: QrCode,           label: 'QR Mesas',   adminOnly: true  },
 ];

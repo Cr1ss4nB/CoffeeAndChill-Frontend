@@ -23,7 +23,6 @@ const InventoryPage = lazy(() => import('@/pages/InventoryPage'));
 const WorkshopsPage = lazy(() => import('@/pages/WorkshopsPage'));
 
 const EmployeesPage = lazy(() => import('@/pages/EmployeesPage'));
-const QRManagementPage = lazy(() => import('@/pages/QRManagementPage'));
 const TablesPage = lazy(() => import('@/pages/TablesPage'));
 const ProductsPage = lazy(() => import('@/pages/ProductsPage'));
 
@@ -132,17 +131,6 @@ export default function App() {
                 <ProtectedRoute>
                   <RoleGuard allowedRoles={['ADMIN']}>
                     <TablesPage />
-                  </RoleGuard>
-                </ProtectedRoute>
-              }
-            />
-
-            <Route
-              path="/qr"
-              element={
-                <ProtectedRoute>
-                  <RoleGuard allowedRoles={['ADMIN']}>
-                    <QRManagementPage />
                   </RoleGuard>
                 </ProtectedRoute>
               }

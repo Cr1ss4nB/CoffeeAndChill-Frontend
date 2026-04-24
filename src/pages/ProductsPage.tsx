@@ -58,6 +58,7 @@ export default function ProductsPage() {
       stock_quantity: Number(fd.get('stock_quantity')),
       description: fd.get('description') as string,
       status: fd.get('status') as string,
+      image_url: fd.get('image_url') as string,
     };
 
     if (modal === 'new') {
@@ -71,6 +72,12 @@ export default function ProductsPage() {
 
   return (
     <DashboardTemplate title="Gestión de Productos">
+      <div className="mb-6">
+        <p className="text-sm text-text-secondary">
+          Define aquí los productos de tu menú (nombre, precio, categoría base). 
+          Para controlar el stock y ver movimientos, ve a la sección de <strong>Inventario</strong>.
+        </p>
+      </div>
       <div className="flex flex-col sm:flex-row gap-3 mb-6">
         <div className="flex-1"><SearchBar value={search} onChange={setSearch} placeholder="Buscar producto..." /></div>
         <Button onClick={() => setModal('new')} icon={<Plus size={16} />}>Nuevo Producto</Button>
@@ -83,7 +90,7 @@ export default function ProductsPage() {
             <table className="w-full text-left text-sm">
               <thead className="bg-white/40 border-b border-white/20">
                 <tr>
-                  <th className="p-4 font-bold text-text-primary">ID</th>
+                  <th className="p-4 font-bold text-text-primary">Imagen</th>
                   <th className="p-4 font-bold text-text-primary">Nombre</th>
                   <th className="p-4 font-bold text-text-primary">Precio</th>
                   <th className="p-4 font-bold text-text-primary">Stock</th>
@@ -94,7 +101,17 @@ export default function ProductsPage() {
               <tbody className="divide-y divide-white/10">
                 {filtered.map((p) => (
                   <tr key={p.product_id} className={`hover:bg-white/20 transition-colors ${p.status === 'INACTIVE' ? 'opacity-50' : ''}`}>
-                    <td className="p-4 text-text-secondary">#{p.product_id}</td>
+                    <td className="p-4">
+                      <div className="w-10 h-10 rounded-lg overflow-hidden bg-white/40 border border-white/20">
+                        {p.image_url ? (
+                          <img src={p.image_url} alt={p.name} className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-text-secondary">
+                            <Plus size={16} />
+                          </div>
+                        )}
+                      </div>
+                    </td>
                     <td className="p-4 font-medium text-text-primary">{p.name}</td>
                     <td className="p-4 text-text-secondary">${p.price}</td>
                     <td className="p-4 text-text-secondary">{p.stock_quantity}</td>
@@ -147,6 +164,8 @@ export default function ProductsPage() {
               <FormField label="Precio" fieldId="price" name="price" type="number" required defaultValue={modal !== 'new' ? String(modal.price) : ''} />
               <FormField label="Stock Base" fieldId="stock_quantity" name="stock_quantity" type="number" required defaultValue={modal !== 'new' ? String(modal.stock_quantity) : '0'} />
             </div>
+
+            <FormField label="URL de Imagen (Opcional)" fieldId="image_url" name="image_url" defaultValue={modal !== 'new' ? modal.image_url : ''} />
 
             <div>
               <label className="block text-sm font-medium text-text-primary mb-1">Estado</label>

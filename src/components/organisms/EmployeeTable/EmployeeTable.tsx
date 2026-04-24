@@ -25,6 +25,9 @@ export function EmployeeTable() {
     e.name.toLowerCase().includes(search.toLowerCase())
   ) || [];
 
+  console.log('DEBUG UI - Empleados cargados:', employees);
+  console.log('DEBUG UI - Empleados filtrados:', filtered);
+
   function handleSave(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
@@ -105,6 +108,12 @@ export function EmployeeTable() {
             </div>
           </div>
         ))}
+        {filtered.length === 0 && !isLoading && (
+          <div className="glass p-8 text-center !rounded-2xl">
+            <p className="text-text-secondary text-sm">No se encontraron empleados.</p>
+            <p className="text-text-secondary text-xs mt-1">Usa el botón "Agregar" para registrar al personal.</p>
+          </div>
+        )}
       </div>
 
       {/* Add/Edit Modal */}

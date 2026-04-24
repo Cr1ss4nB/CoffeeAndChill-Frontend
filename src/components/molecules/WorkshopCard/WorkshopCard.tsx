@@ -16,9 +16,10 @@ function formatCOP(value: number): string {
 interface WorkshopCardProps {
   workshop: Workshop;
   onReserve?: (workshop: Workshop) => void;
+  adminMode?: boolean;
 }
 
-export function WorkshopCard({ workshop, onReserve }: WorkshopCardProps) {
+export function WorkshopCard({ workshop, onReserve, adminMode }: WorkshopCardProps) {
   const spotsLeft = workshop.totalSpots - workshop.reservedSpots;
   const isFull = spotsLeft <= 0;
 
@@ -44,13 +45,15 @@ export function WorkshopCard({ workshop, onReserve }: WorkshopCardProps) {
 
       <div className="flex items-center justify-between mt-4">
         <span className="font-bold text-text-primary">{formatCOP(workshop.price)}</span>
-        {isFull ? (
-          <Badge className="bg-red-100/80 text-red-600">Lleno</Badge>
-        ) : (
-          onReserve && (
-            <Button size="sm" onClick={() => onReserve(workshop)}>
-              Reservar cupo
-            </Button>
+        {!adminMode && (
+          isFull ? (
+            <Badge className="bg-red-100/80 text-red-600">Lleno</Badge>
+          ) : (
+            onReserve && (
+              <Button size="sm" onClick={() => onReserve(workshop)}>
+                Reservar cupo
+              </Button>
+            )
           )
         )}
       </div>

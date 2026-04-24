@@ -3,11 +3,12 @@ import api from '@/api/api.client';
 
 export async function getEmployees(): Promise<User[]> {
   const response = await api.get('/admin/employees');
+  console.log('DEBUG FRONTEND - Datos recibidos de /admin/employees:', response.data);
   // Backend returns: employee_id, full_name, email, role, phone, is_active
   // Frontend expects: id, name, email, role, active
   return response.data.map((e: any) => ({
     id: String(e.employee_id),
-    name: e.full_name,
+    name: e.full_name || e.name || 'Sin Nombre',
     email: e.email,
     role: e.role?.toUpperCase() || 'EMPLOYEE',
     active: e.is_active,
