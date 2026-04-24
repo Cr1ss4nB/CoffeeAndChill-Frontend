@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Pencil, X, ToggleLeft, ToggleRight, ExternalLink } from 'lucide-react';
+import { Plus, Pencil, X, ToggleLeft, ToggleRight, ExternalLink, FlaskConical, Trash2 } from 'lucide-react';
 import { DashboardTemplate } from '@/components/templates/DashboardTemplate/DashboardTemplate';
 import { Button } from '@/components/atoms/Button/Button';
 import { FormField } from '@/components/molecules/FormField/FormField';
@@ -10,10 +10,131 @@ import { SearchBar } from '@/components/molecules/SearchBar/SearchBar';
 import api from '@/api/api.client';
 import toast from 'react-hot-toast';
 import type { Product, Category } from '@/hooks/useCatalog';
+import { useIngredients, useProductConsumption, useUpsertProductConsumption } from '@/hooks/useIngredients';
+
+type ModalState = Product | 'new' | null;
+type ConsumptionRow = { ingredient_id: number; quantity_used: number };
+
+function ConsumptionPanel({ product, onClose }: { product: Product; onClose: () => void }) {
+  const { data: ingredients } = useIngredients();
+  const { data: consumption, isLoading } = useProductConsumption(product.product_id);
+  const upsertMut = useUpsertProductConsumption(product.product_id);
+
+  const [rows, setRows] = useState<ConsumptionRow[]>([]);
+  const [initialized, setInitialized] = useState(false);
+
+  if (!initialized && consumption) {
+    setRows(consumption.map((c) => ({ ingredient_id: c.ingredient_id, quantity_used: c.quantity_used })));
+    setInitialized(true);
+  }
+
+  function addRow() {
+    const firstUnused = ingredients?.find((i) => !rows.some((r) => r.ingredient_id === i.ingredient_id));
+    if (!firstUnused) return;
+    setRows((prev) => [...prev, { ingredient_id: firstUnused.ingredient_id, quantity_used: 1 }]);
+  }
+
+  function removeRow(index: number) {
+    setRows((prev) => prev.filter((_, i) => i !== index));
+  }
+
+  function updateRow(index: number, field: keyof ConsumptionRow, value: number) {
+    setRows((prev) => prev.map((r, i) => (i === index ? { ...r, [field]: value } : r)));
+  }
+
+  function handleSave() {
+    upsertMut.mutate(rows, {
+      onSuccess: () => toast.success('Consumo actualizado'),
+      onError: (err: any) => toast.error(err.response?.data?.detail || 'Error guardando consumo'),
+    });
+  }
+
+  return (
+    <div className="fixed inset-y-0 right-0 w-full sm:w-[480px] z-50 glass !rounded-none !rounded-l-3xl p-6 overflow-y-auto shadow-2xl">
+      <div className="flex items-center justify-between mb-2">
+        <div>
+          <h2 className="font-display font-bold text-lg text-text-primary">Insumos que consume</h2>
+          <p className="text-xs text-text-secondary">{product.name}</p>
+        </div>
+        <button onClick={onClose} className="p-1 rounded-lg hover:bg-white/40" aria-label="Cerrar">
+          <X size={20} className="text-text-secondary" />
+        </button>
+      </div>
+
+      <p className="text-xs text-text-secondary mb-4">
+        Define cuánto de cada insumo se consume al vender 1 unidad de este producto.
+        Dejar vacío = solo controla stock del producto, sin deducción de insumos.
+      </p>
+
+      {isLoading ? (
+        <div className="flex justify-center py-8"><Spinner /></div>
+      ) : (
+        <div className="space-y-3 mb-4">
+          {rows.map((row, i) => {
+            const ing = ingredients?.find((x) => x.ingredient_id === row.ingredient_id);
+            return (
+              <div key={i} className="flex gap-2 items-end">
+                <div className="flex-1">
+                  <label className="block text-xs font-medium text-text-primary mb-1">Insumo</label>
+                  <select
+                    value={row.ingredient_id}
+                    onChange={(e) => updateRow(i, 'ingredient_id', Number(e.target.value))}
+                    className="w-full px-3 py-2 rounded-xl text-sm bg-white/50 border border-white/40 focus:outline-none focus:ring-2 focus:ring-blush/50"
+                  >
+                    {ingredients?.map((ing) => (
+                      <option key={ing.ingredient_id} value={ing.ingredient_id}>
+                        {ing.name} ({ing.unit})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="w-28">
+                  <label className="block text-xs font-medium text-text-primary mb-1">
+                    Cantidad ({ing?.unit ?? ''})
+                  </label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    min="0.1"
+                    value={row.quantity_used}
+                    onChange={(e) => updateRow(i, 'quantity_used', Number(e.target.value))}
+                    className="w-full px-3 py-2 rounded-xl text-sm bg-white/50 border border-white/40 focus:outline-none focus:ring-2 focus:ring-blush/50"
+                  />
+                </div>
+                <button
+                  onClick={() => removeRow(i)}
+                  className="p-2 mb-0.5 rounded-lg hover:bg-red-100/50 text-red-400"
+                  aria-label="Eliminar fila"
+                >
+                  <Trash2 size={16} />
+                </button>
+              </div>
+            );
+          })}
+
+          {rows.length === 0 && (
+            <p className="text-sm text-text-secondary text-center py-4">
+              Sin consumo configurado — solo descuenta stock del producto.
+            </p>
+          )}
+
+          <Button variant="ghost" size="sm" onClick={addRow} icon={<Plus size={14} />} className="w-full">
+            Agregar insumo
+          </Button>
+        </div>
+      )}
+
+      <Button className="w-full" onClick={handleSave} loading={upsertMut.isPending}>
+        Guardar consumo
+      </Button>
+    </div>
+  );
+}
 
 export default function ProductsPage() {
   const qc = useQueryClient();
-  const [modal, setModal] = useState<Product | 'new' | null>(null);
+  const [modal, setModal] = useState<ModalState>(null);
+  const [consumptionProduct, setConsumptionProduct] = useState<Product | null>(null);
   const [search, setSearch] = useState('');
 
   const { data: products, isLoading } = useQuery({
@@ -190,6 +311,14 @@ export default function ProductsPage() {
                       </span>
                     </td>
                     <td className="p-3 flex gap-2 justify-end align-middle">
+                      <button
+                        onClick={() => setConsumptionProduct(p)}
+                        className="p-2 rounded-lg hover:bg-white/40 text-text-secondary"
+                        aria-label="Configurar insumos"
+                        title="Insumos que consume"
+                      >
+                        <FlaskConical size={18} />
+                      </button>
                       <button onClick={() => setModal(p)} className="p-2 rounded-lg hover:bg-white/40 text-text-secondary" aria-label="Editar">
                         <Pencil size={18} />
                       </button>
@@ -310,6 +439,13 @@ export default function ProductsPage() {
             </Button>
           </form>
         </div>
+      )}
+
+      {consumptionProduct && (
+        <ConsumptionPanel
+          product={consumptionProduct}
+          onClose={() => setConsumptionProduct(null)}
+        />
       )}
     </DashboardTemplate>
   );

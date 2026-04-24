@@ -2,6 +2,7 @@ import {
   LayoutDashboard,
   UtensilsCrossed,
   Package,
+  FlaskConical,
   CalendarDays,
   BookOpen,
   Users,
@@ -26,6 +27,7 @@ export const navItems: NavItem[] = [
   { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard', adminOnly: true },
   { to: '/orders', icon: UtensilsCrossed, label: 'Pedidos', staffOnly: true },
   { to: '/inventory', icon: Package, label: 'Inventario', staffOnly: true },
+  { to: '/ingredients', icon: FlaskConical, label: 'Insumos', staffOnly: true },
   { to: '/products', icon: FileEdit, label: 'Editar carta', staffOnly: true, navKey: 'edit-carta' },
   { to: '/menu', icon: BookOpen, label: 'Menú', customerOnly: true, navKey: 'menu-cliente' },
   {

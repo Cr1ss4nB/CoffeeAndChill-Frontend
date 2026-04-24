@@ -10,48 +10,40 @@ export async function getInventoryItems(): Promise<InventoryItem[]> {
     category: i.category.toLowerCase() === 'creativo' ? 'creativo' : 'consumo',
     subcategory: i.category,
     stock: i.stock_quantity,
-    unit: i.name.toLowerCase().includes('kit') ? 'kit' : 'ud', 
-    minStock: 10,
-    status: i.is_low_stock ? 'LOW' : 'OK',
-    colors: i.name.toLowerCase().includes('kit primavera') ? ['#E8B4B8', '#A8D5BA', '#F5E6A8', '#B8C9E8', '#F2C4A0', '#C8A8E8'] :
-            i.name.toLowerCase().includes('kit atardecer') ? ['#E86850', '#F4A460', '#FFD700', '#FF6B81', '#C85A54', '#8B4513'] :
-            i.name.toLowerCase().includes('kit') ? ['#1E90FF', '#00CED1', '#20B2AA', '#4682B4', '#5F9EA0', '#B0E0E6'] : undefined,
-    volume: i.name.toLowerCase().includes('pintura') ? '50ml' : undefined
+    unit: 'ud',
+    minStock: 0,
+    status: i.is_low_stock ? 'LOW' : (i.stock_quantity === 0 ? 'OUT' : 'OK'),
   }));
 }
 
-export async function createInventoryItem(data: Omit<InventoryItem, 'id' | 'status'>): Promise<InventoryItem> {
-  // En el sistema real, "crear inventario" significa hacer un Ajuste INicial o
-  // la creación se hace desde Productos. Aquí creamos un producto nuevo
-  // y luego hacemos un ajuste de inventario si el stock > 0
-  
-  // 1. Crear producto
-  const productPayload = {
+export async function createInventoryItem(
+  data: Omit<InventoryItem, 'id' | 'status'> & { category_id: number; price: number }
+): Promise<InventoryItem> {
+  // Product creation requires category_id (from API) and price.
+  // Use ProductsPage (/products) for full product management.
+  const p_res = await api.post('/products', {
     name: data.name,
-    price: 1000, // Dummy price, inventory manager usually doesn't set price, but it's required for ProductCreate
-    stock_quantity: 0, // start with 0, then adjust to get traces
-    category_id: data.category === 'creativo' ? 2 : 1, // mapping category id
+    price: data.price,
+    stock_quantity: 0,
+    category_id: data.category_id,
     description: data.subcategory,
-    status: 'ACTIVE'
-  };
-  
-  const p_res = await api.post('/products', productPayload);
-  const newId = p_res.data.product_id;
+    status: 'ACTIVE',
+  });
+  const newId: number = p_res.data.product_id;
 
-  // 2. Hacer el adjustment inicial si stock > 0
   if (data.stock > 0) {
     await api.post('/inventory/adjustments', {
       product_id: newId,
       quantity: data.stock,
       reason: 'RECEIPT',
-      notes: 'Initial inventory creation'
+      notes: 'Stock inicial',
     });
   }
 
   return {
     ...data,
     id: String(newId),
-    status: data.stock <= (data.minStock || 10) ? (data.stock === 0 ? 'OUT' : 'LOW') : 'OK',
+    status: data.stock === 0 ? 'OUT' : 'OK',
   };
 }
 

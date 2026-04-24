@@ -11,7 +11,6 @@ import { CartDrawer } from '@/components/organisms/CartDrawer/CartDrawer';
 const LoginPage = lazy(() => import('@/pages/LoginPage'));
 const RegisterPage = lazy(() => import('@/pages/RegisterPage'));
 const NotFoundPage = lazy(() => import('@/pages/NotFoundPage'));
-const ForbiddenPage = lazy(() => import('@/pages/ForbiddenPage'));
 
 const MenuPage = lazy(() => import('@/pages/MenuPage').then(m => ({ default: m.MenuPage })));
 
@@ -26,6 +25,7 @@ const EmployeesPage = lazy(() => import('@/pages/EmployeesPage'));
 const QRManagementPage = lazy(() => import('@/pages/QRManagementPage'));
 const TablesPage = lazy(() => import('@/pages/TablesPage'));
 const ProductsPage = lazy(() => import('@/pages/ProductsPage'));
+const IngredientsPage = lazy(() => import('@/pages/IngredientsPage'));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -57,7 +57,7 @@ export default function App() {
 
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
-            <Route path="/403" element={<ForbiddenPage />} />
+            <Route path="/403" element={<Navigate to="/menu" replace />} />
 
             {/* Carta pública: accesible sin autenticación */}
             <Route path="/menu" element={<MenuPage />} />
@@ -121,6 +121,17 @@ export default function App() {
                 <ProtectedRoute>
                   <RoleGuard allowedRoles={['ADMIN', 'EMPLOYEE']}>
                     <ProductsPage />
+                  </RoleGuard>
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/ingredients"
+              element={
+                <ProtectedRoute>
+                  <RoleGuard allowedRoles={['ADMIN', 'EMPLOYEE']}>
+                    <IngredientsPage />
                   </RoleGuard>
                 </ProtectedRoute>
               }
