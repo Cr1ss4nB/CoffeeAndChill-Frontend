@@ -14,6 +14,11 @@ api.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+  if (config.data instanceof FormData) {
+    if (config.headers && typeof (config.headers as { set?: (k: string, v: false) => void }).set === 'function') {
+      (config.headers as { set: (k: string, v: false) => void }).set('Content-Type', false);
+    }
+  }
   return config;
 });
 

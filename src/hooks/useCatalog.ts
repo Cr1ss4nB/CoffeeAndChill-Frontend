@@ -17,6 +17,7 @@ export interface Product {
   stock_quantity: number;
   status: string;
   description?: string;
+  image_url?: string;
 }
 
 export function useCategories() {

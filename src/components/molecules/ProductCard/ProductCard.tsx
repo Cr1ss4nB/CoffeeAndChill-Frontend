@@ -1,5 +1,6 @@
 import { ShoppingCart } from 'lucide-react';
 import { Button } from '@/components/atoms/Button/Button';
+import { isStaffUser, useAuthStore } from '@/store/auth.store';
 import { useUIStore } from '@/store/ui.store';
 import type { Product } from '@/hooks/useCatalog';
 import type { Product as StoreProduct } from '@/types';
@@ -24,11 +25,14 @@ function toStoreProduct(p: Product): StoreProduct {
     category: 'menu' as StoreProduct['category'],
     available: p.status === 'ACTIVE',
     description: p.description ?? '',
+    imageUrl: p.image_url,
   };
 }
 
 export function ProductCard({ product }: ProductCardProps) {
+  const user = useAuthStore((s) => s.user);
   const addToCart = useUIStore((s) => s.addToCart);
+  const canAddToCart = !isStaffUser(user);
 
   const formattedPrice = formatCOP(product.price);
 
@@ -39,9 +43,17 @@ export function ProductCard({ product }: ProductCardProps) {
   return (
     <div className="glass group overflow-hidden flex flex-col h-full hover:border-accent-primary/30 transition-all duration-300">
       <div className="aspect-square bg-gradient-to-br from-blush/20 to-lavender/20 flex items-center justify-center overflow-hidden">
-        <div className="w-full h-full flex items-center justify-center text-text-secondary/20 font-display text-4xl group-hover:scale-110 transition-transform duration-500">
-          {product.name.charAt(0)}
-        </div>
+        {product.image_url ? (
+          <img
+            src={product.image_url}
+            alt={product.name}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-text-secondary/20 font-display text-4xl group-hover:scale-110 transition-transform duration-500">
+            {product.name.charAt(0)}
+          </div>
+        )}
       </div>
 
       <div className="p-4 flex flex-col flex-grow">
@@ -58,15 +70,21 @@ export function ProductCard({ product }: ProductCardProps) {
           {product.description || 'Delicioso producto preparado con los mejores ingredientes de Coffee & Chill.'}
         </p>
 
-        <Button
-          size="sm"
-          variant="ghost"
-          onClick={handleAddToCart}
-          className="w-full gap-2 group-hover:bg-accent-primary group-hover:text-white transition-colors"
-        >
-          <ShoppingCart size={16} />
-          Añadir al carrito
-        </Button>
+        {canAddToCart ? (
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={handleAddToCart}
+            className="w-full gap-2 group-hover:bg-accent-primary group-hover:text-white transition-colors"
+          >
+            <ShoppingCart size={16} />
+            Añadir al carrito
+          </Button>
+        ) : (
+          <p className="text-xs text-text-secondary/80 text-center py-2 border-t border-white/20">
+            Vista de carta (solo clientes añaden al carrito)
+          </p>
+        )}
       </div>
     </div>
   );

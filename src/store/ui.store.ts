@@ -4,6 +4,10 @@ import type { CartItem, Product, ProductCustomizations } from '@/types';
 interface UIState {
   sidebarOpen: boolean;
   toggleSidebar: () => void;
+  mobileNavOpen: boolean;
+  setMobileNavOpen: (open: boolean) => void;
+  closeMobileNav: () => void;
+  toggleMobileNav: () => void;
   cartOpen: boolean;
   openCart: () => void;
   closeCart: () => void;
@@ -23,6 +27,11 @@ interface UIState {
 export const useUIStore = create<UIState>()((set, get) => ({
   sidebarOpen: true,
   toggleSidebar: () => set((s) => ({ sidebarOpen: !s.sidebarOpen })),
+
+  mobileNavOpen: false,
+  setMobileNavOpen: (open) => set({ mobileNavOpen: open }),
+  closeMobileNav: () => set({ mobileNavOpen: false }),
+  toggleMobileNav: () => set((s) => ({ mobileNavOpen: !s.mobileNavOpen })),
 
   cartOpen: false,
   openCart: () => set({ cartOpen: true }),

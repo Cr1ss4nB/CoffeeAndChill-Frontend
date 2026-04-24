@@ -6,12 +6,14 @@ interface NavLinkProps {
   icon: LucideIcon;
   label: string;
   collapsed?: boolean;
+  onNavigate?: () => void;
 }
 
-export function NavLink({ to, icon: Icon, label, collapsed }: NavLinkProps) {
+export function NavLink({ to, icon: Icon, label, collapsed, onNavigate }: NavLinkProps) {
   return (
     <RouterNavLink
       to={to}
+      onClick={onNavigate}
       className={({ isActive }) =>
         `relative flex items-center gap-3 px-4 py-3 rounded-2xl font-medium text-sm transition-all duration-200 ${
           isActive
