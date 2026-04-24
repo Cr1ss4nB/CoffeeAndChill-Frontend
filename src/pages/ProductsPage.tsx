@@ -1,6 +1,7 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Pencil, X, ToggleLeft, ToggleRight } from 'lucide-react';
+import { Plus, Pencil, X, ToggleLeft, ToggleRight, ExternalLink } from 'lucide-react';
 import { DashboardTemplate } from '@/components/templates/DashboardTemplate/DashboardTemplate';
 import { Button } from '@/components/atoms/Button/Button';
 import { FormField } from '@/components/molecules/FormField/FormField';
@@ -32,15 +33,28 @@ export default function ProductsPage() {
   });
 
   const createMut = useMutation({
-    mutationFn: (data: any) => api.post('/products', data),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['admin-products'] }); qc.invalidateQueries({ queryKey: ['products'] }); toast.success('Producto creado'); setModal(null); },
-    onError: (err: any) => toast.error(err.response?.data?.detail || 'Error creando producto'),
+    mutationFn: (data: FormData | Record<string, unknown>) => api.post('/products', data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin-products'] });
+      qc.invalidateQueries({ queryKey: ['products'] });
+      toast.success('Producto creado');
+      setModal(null);
+    },
+    onError: (err: { response?: { data?: { detail?: string } } }) =>
+      toast.error(err.response?.data?.detail || 'Error creando producto'),
   });
 
   const updateMut = useMutation({
-    mutationFn: ({ id, data }: { id: number; data: any }) => api.put(`/products/${id}`, data),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['admin-products'] }); qc.invalidateQueries({ queryKey: ['products'] }); toast.success('Producto actualizado'); setModal(null); },
-    onError: (err: any) => toast.error(err.response?.data?.detail || 'Error actualizando producto'),
+    mutationFn: ({ id, data }: { id: number; data: FormData | Record<string, unknown> }) =>
+      api.put(`/products/${id}`, data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin-products'] });
+      qc.invalidateQueries({ queryKey: ['products'] });
+      toast.success('Producto actualizado');
+      setModal(null);
+    },
+    onError: (err: { response?: { data?: { detail?: string } } }) =>
+      toast.error(err.response?.data?.detail || 'Error actualizando producto'),
   });
 
   const statusMut = useMutation({
@@ -50,30 +64,88 @@ export default function ProductsPage() {
 
   function handleSave(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const fd = new FormData(e.currentTarget);
-    const data = {
-      name: fd.get('name') as string,
-      category_id: Number(fd.get('category_id')),
-      price: Number(fd.get('price')),
-      stock_quantity: Number(fd.get('stock_quantity')),
-      description: fd.get('description') as string,
-      status: fd.get('status') as string,
-    };
+    const form = e.currentTarget;
+    const fd = new FormData(form);
+    const fileField = form.elements.namedItem('image') as HTMLInputElement | null;
+    const file = fileField?.files?.[0];
+    const hasFile = file && file.size > 0;
 
-    if (modal === 'new') {
-      createMut.mutate(data);
-    } else if (modal && typeof modal === 'object') {
-      updateMut.mutate({ id: modal.product_id, data });
+    const name = fd.get('name') as string;
+    const description = (fd.get('description') as string) || '';
+    const categoryId = Number(fd.get('category_id'));
+    const price = Number(fd.get('price'));
+    const stock = Number(fd.get('stock_quantity'));
+    const status = fd.get('status') as string;
+    const imageUrl = (fd.get('image_url') as string | null)?.trim() || undefined;
+
+    if (hasFile) {
+      const m = new FormData();
+      m.append('name', name);
+      m.append('description', description);
+      m.append('category_id', String(categoryId));
+      m.append('price', String(price));
+      m.append('stock_quantity', String(stock));
+      m.append('status', status);
+      m.append('image', file);
+      if (imageUrl) m.append('image_url', imageUrl);
+
+      if (modal === 'new') {
+        createMut.mutate(m);
+      } else if (modal && typeof modal === 'object') {
+        updateMut.mutate({ id: modal.product_id, data: m });
+      }
+    } else {
+      const data: Record<string, unknown> = {
+        name,
+        description,
+        category_id: categoryId,
+        price,
+        stock_quantity: stock,
+        status,
+      };
+      if (imageUrl) {
+        data.image_url = imageUrl;
+      }
+
+      if (modal === 'new') {
+        createMut.mutate(data);
+      } else if (modal && typeof modal === 'object') {
+        updateMut.mutate({ id: modal.product_id, data });
+      }
     }
   }
 
   const filtered = products?.filter((p) => p.name.toLowerCase().includes(search.toLowerCase())) || [];
 
   return (
-    <DashboardTemplate title="Gestión de Productos">
+    <DashboardTemplate title="Editar carta">
+      <p className="text-sm text-text-secondary mb-4 max-w-2xl">
+        Aquí se define lo que sale en la carta: precio, descripción, visibilidad e <strong>imágenes</strong> (archivo o URL
+        pública). Si la API aún no recibe <code className="text-xs">image</code> en multipart, basta con el campo de URL o
+        ajustar el contrato en el backend.
+      </p>
+      <div className="glass rounded-2xl p-4 mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <p className="text-sm text-text-primary">
+          ¿Cómo se ve hoy? Abre la carta con los mismos datos que en sala.
+        </p>
+        <Link
+          to="/menu"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center justify-center gap-2 font-medium text-sm rounded-xl px-3 py-1.5 border border-white/40 bg-transparent backdrop-blur-sm text-text-primary hover:bg-white/20 transition-colors w-fit"
+        >
+          <ExternalLink size={16} />
+          Vista pública
+        </Link>
+      </div>
+
       <div className="flex flex-col sm:flex-row gap-3 mb-6">
-        <div className="flex-1"><SearchBar value={search} onChange={setSearch} placeholder="Buscar producto..." /></div>
-        <Button onClick={() => setModal('new')} icon={<Plus size={16} />}>Nuevo Producto</Button>
+        <div className="flex-1">
+          <SearchBar value={search} onChange={setSearch} placeholder="Buscar en la carta…" />
+        </div>
+        <Button onClick={() => setModal('new')} icon={<Plus size={16} />}>
+          Nuevo producto
+        </Button>
       </div>
 
       {isLoading ? (
@@ -83,27 +155,41 @@ export default function ProductsPage() {
             <table className="w-full text-left text-sm">
               <thead className="bg-white/40 border-b border-white/20">
                 <tr>
-                  <th className="p-4 font-bold text-text-primary">ID</th>
-                  <th className="p-4 font-bold text-text-primary">Nombre</th>
-                  <th className="p-4 font-bold text-text-primary">Precio</th>
-                  <th className="p-4 font-bold text-text-primary">Stock</th>
-                  <th className="p-4 font-bold text-text-primary">Estado</th>
-                  <th className="p-4 font-bold text-text-primary text-right">Acciones</th>
+                  <th className="p-3 font-bold text-text-primary w-12">#</th>
+                  <th className="p-3 font-bold text-text-primary w-14">Foto</th>
+                  <th className="p-3 font-bold text-text-primary">Nombre</th>
+                  <th className="p-3 font-bold text-text-primary">Precio</th>
+                  <th className="p-3 font-bold text-text-primary">Stock</th>
+                  <th className="p-3 font-bold text-text-primary">Estado</th>
+                  <th className="p-3 font-bold text-text-primary text-right">Acciones</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/10">
                 {filtered.map((p) => (
                   <tr key={p.product_id} className={`hover:bg-white/20 transition-colors ${p.status === 'INACTIVE' ? 'opacity-50' : ''}`}>
-                    <td className="p-4 text-text-secondary">#{p.product_id}</td>
-                    <td className="p-4 font-medium text-text-primary">{p.name}</td>
-                    <td className="p-4 text-text-secondary">${p.price}</td>
-                    <td className="p-4 text-text-secondary">{p.stock_quantity}</td>
-                    <td className="p-4">
+                    <td className="p-3 text-text-secondary align-middle">#{p.product_id}</td>
+                    <td className="p-3 align-middle">
+                      {p.image_url ? (
+                        <img
+                          src={p.image_url}
+                          alt={p.name}
+                          className="h-10 w-10 rounded-lg object-cover border border-white/30"
+                        />
+                      ) : (
+                        <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-blush/25 to-lavender/25 flex items-center justify-center text-xs font-display text-text-secondary/50">
+                          {p.name.charAt(0)}
+                        </div>
+                      )}
+                    </td>
+                    <td className="p-3 font-medium text-text-primary align-middle">{p.name}</td>
+                    <td className="p-3 text-text-secondary align-middle">${p.price}</td>
+                    <td className="p-3 text-text-secondary align-middle">{p.stock_quantity}</td>
+                    <td className="p-3 align-middle">
                       <span className={`px-2 py-1 rounded-full text-xs font-bold ${p.status === 'ACTIVE' ? 'bg-sage/40 text-green-700' : 'bg-red-100/50 text-red-600'}`}>
                         {p.status}
                       </span>
                     </td>
-                    <td className="p-4 flex gap-2 justify-end">
+                    <td className="p-3 flex gap-2 justify-end align-middle">
                       <button onClick={() => setModal(p)} className="p-2 rounded-lg hover:bg-white/40 text-text-secondary" aria-label="Editar">
                         <Pencil size={18} />
                       </button>
@@ -127,36 +213,101 @@ export default function ProductsPage() {
         <div className="fixed inset-y-0 right-0 w-full sm:w-96 z-50 glass !rounded-none !rounded-l-3xl p-6 overflow-y-auto shadow-2xl">
           <div className="flex items-center justify-between mb-6">
             <h2 className="font-display font-bold text-lg text-text-primary">
-              {modal === 'new' ? 'Nuevo Producto' : 'Editar Producto'}
+              {modal === 'new' ? 'Nuevo producto en la carta' : 'Editar producto en la carta'}
             </h2>
-            <button onClick={() => setModal(null)} className="p-1 rounded-lg hover:bg-white/40"><X size={20} /></button>
+            <button onClick={() => setModal(null)} className="p-1 rounded-lg hover:bg-white/40" type="button" aria-label="Cerrar">
+              <X size={20} />
+            </button>
           </div>
           <form onSubmit={handleSave} className="space-y-4">
-            <FormField label="Nombre Comercial" fieldId="name" name="name" required defaultValue={modal !== 'new' ? modal.name : ''} />
-            <FormField label="Descripción" fieldId="description" name="description" defaultValue={modal !== 'new' ? modal.description : ''} />
+            <FormField
+              label="Nombre comercial"
+              fieldId="name"
+              name="name"
+              required
+              defaultValue={modal !== 'new' && typeof modal === 'object' ? modal.name : ''}
+            />
+            <FormField
+              label="Descripción (visible en la carta)"
+              fieldId="description"
+              name="description"
+              defaultValue={modal !== 'new' && typeof modal === 'object' ? modal.description : ''}
+            />
             
             <div>
               <label className="block text-sm font-medium text-text-primary mb-1">Categoría</label>
-              <select name="category_id" required defaultValue={modal !== 'new' ? modal.category_id : ''} className="w-full px-4 py-2.5 rounded-xl text-sm bg-white/50 backdrop-blur-sm border border-white/40 focus:outline-none focus:ring-2 focus:ring-blush/50">
+              <select
+                name="category_id"
+                required
+                defaultValue={modal !== 'new' && typeof modal === 'object' ? modal.category_id : ''}
+                className="w-full px-4 py-2.5 rounded-xl text-sm bg-white/50 backdrop-blur-sm border border-white/40 focus:outline-none focus:ring-2 focus:ring-blush/50"
+              >
                 <option value="">Seleccione...</option>
-                {categories?.map(c => <option key={c.category_id} value={c.category_id}>{c.category_name}</option>)}
+                {categories?.map((c) => (
+                  <option key={c.category_id} value={c.category_id}>
+                    {c.category_name}
+                  </option>
+                ))}
               </select>
+            </div>
+
+            <div className="space-y-2">
+              <FormField
+                label="URL de imagen (opcional, si aún no subes archivo)"
+                fieldId="image_url"
+                name="image_url"
+                type="url"
+                placeholder="https://…"
+                defaultValue={modal !== 'new' && typeof modal === 'object' ? (modal.image_url ?? '') : ''}
+              />
+              <div>
+                <label htmlFor="image" className="block text-sm font-medium text-text-primary mb-1">
+                  Subir imagen (JPG, PNG, WebP)
+                </label>
+                <input
+                  id="image"
+                  name="image"
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,image/gif"
+                  className="block w-full text-sm text-text-secondary file:mr-3 file:rounded-lg file:border-0 file:bg-blush/30 file:px-3 file:py-2 file:font-medium file:text-text-primary"
+                />
+              </div>
             </div>
             
             <div className="grid grid-cols-2 gap-3">
-              <FormField label="Precio" fieldId="price" name="price" type="number" required defaultValue={modal !== 'new' ? String(modal.price) : ''} />
-              <FormField label="Stock Base" fieldId="stock_quantity" name="stock_quantity" type="number" required defaultValue={modal !== 'new' ? String(modal.stock_quantity) : '0'} />
+              <FormField
+                label="Precio"
+                fieldId="price"
+                name="price"
+                type="number"
+                required
+                defaultValue={modal !== 'new' && typeof modal === 'object' ? String(modal.price) : ''}
+              />
+              <FormField
+                label="Stock base"
+                fieldId="stock_quantity"
+                name="stock_quantity"
+                type="number"
+                required
+                defaultValue={modal !== 'new' && typeof modal === 'object' ? String(modal.stock_quantity) : '0'}
+              />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-text-primary mb-1">Estado</label>
-              <select name="status" defaultValue={modal !== 'new' ? modal.status : 'ACTIVE'} className="w-full px-4 py-2.5 rounded-xl text-sm bg-white/50 backdrop-blur-sm border border-white/40 focus:outline-none focus:ring-2 focus:ring-blush/50">
-                <option value="ACTIVE">Activo</option>
-                <option value="INACTIVE">Inactivo</option>
+              <label className="block text-sm font-medium text-text-primary mb-1">Estado en carta</label>
+              <select
+                name="status"
+                defaultValue={modal !== 'new' && typeof modal === 'object' ? modal.status : 'ACTIVE'}
+                className="w-full px-4 py-2.5 rounded-xl text-sm bg-white/50 backdrop-blur-sm border border-white/40 focus:outline-none focus:ring-2 focus:ring-blush/50"
+              >
+                <option value="ACTIVE">Activo (visible)</option>
+                <option value="INACTIVE">Inactivo (oculto)</option>
               </select>
             </div>
 
-            <Button type="submit" className="w-full mt-4" loading={createMut.isPending || updateMut.isPending}>Guardar Producto</Button>
+            <Button type="submit" className="w-full mt-4" loading={createMut.isPending || updateMut.isPending}>
+              Guardar en la carta
+            </Button>
           </form>
         </div>
       )}
