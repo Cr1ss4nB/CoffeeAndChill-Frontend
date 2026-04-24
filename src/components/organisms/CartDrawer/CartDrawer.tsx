@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ShoppingBag, X } from 'lucide-react';
@@ -6,13 +6,23 @@ import toast from 'react-hot-toast';
 import { CartItem } from '@/components/molecules/CartItem/CartItem';
 import { Button } from '@/components/atoms/Button/Button';
 import api from '@/api/api.client';
-import { useAuthStore } from '@/store/auth.store';
+import { isStaffUser, useAuthStore } from '@/store/auth.store';
 import { useUIStore } from '@/store/ui.store';
 
 export function CartDrawer() {
-  const { cartOpen, closeCart, cartItems, getCartTotal, clearCart, setActiveOrderId, tableId } = useUIStore();
+  const user = useAuthStore((state) => state.user);
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const { cartOpen, closeCart, cartItems, getCartTotal, clearCart, setActiveOrderId, tableId } = useUIStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const isStaff = isStaffUser(user);
+
+  useEffect(() => {
+    if (!isStaff) return;
+    const { closeCart: close, clearCart: clear } = useUIStore.getState();
+    close();
+    clear();
+  }, [isStaff]);
 
   const total = getCartTotal();
 
@@ -70,6 +80,10 @@ export function CartDrawer() {
     } finally {
       setIsSubmitting(false);
     }
+  }
+
+  if (isStaff) {
+    return null;
   }
 
   return (

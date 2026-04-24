@@ -20,6 +20,11 @@ function normalizeRole(role: string): string {
   return map[role.toLowerCase()] ?? role.toUpperCase();
 }
 
+export function isStaffUser(user: User | null | undefined): boolean {
+  const r = user?.role;
+  return r === 'ADMIN' || r === 'EMPLOYEE';
+}
+
 function safeSetToken(token: string) {
   try {
     localStorage.setItem(AUTH_TOKEN_KEY, token);
