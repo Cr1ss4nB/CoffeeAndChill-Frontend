@@ -1,4 +1,4 @@
-import type { InventoryItem } from '@/types';
+/*import type { InventoryItem } from '@/types';
 import api from '@/api/api.client';
 
 export async function getInventoryItems(): Promise<{ items: InventoryItem[], low_stock_count: number }> {
@@ -83,3 +83,4 @@ export async function getInventoryMovements(page = 1, limit = 20, userId?: strin
     const response = await api.get(url);
     return response.data;
 }
+*/

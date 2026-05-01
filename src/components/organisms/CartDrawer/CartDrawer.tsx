@@ -14,6 +14,12 @@ export function CartDrawer() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const { cartOpen, closeCart, cartItems, getCartTotal, clearCart, setActiveOrderId, tableId } = useUIStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedType, setSelectedType] = useState<'DINE_IN' | 'TAKEAWAY'>(tableId ? 'DINE_IN' : 'TAKEAWAY');
+
+  // Update selectedType when tableId changes (e.g. scanning QR while drawer is open)
+  useEffect(() => {
+    if (tableId) setSelectedType('DINE_IN');
+  }, [tableId]);
 
   const isStaff = isStaffUser(user);
 
@@ -42,8 +48,8 @@ export function CartDrawer() {
 
     try {
       const payload = {
-        order_type: tableId ? 'DINE_IN' : 'TAKEAWAY',
-        table_id: tableId || null,
+        order_type: selectedType,
+        table_id: selectedType === 'DINE_IN' ? tableId : null,
         items: cartItems.map((item) => ({
           product_id: Number(item.product.id),
           quantity: item.quantity,
@@ -116,7 +122,7 @@ export function CartDrawer() {
                 <div className="flex flex-col">
                   <h2 className="font-display font-bold text-lg text-text-primary">Tu pedido</h2>
                   <p className="text-[10px] uppercase tracking-wider font-bold text-accent-primary leading-none mt-0.5">
-                    {tableId ? `Mesa #${tableId} • LOCAL` : 'PARA LLEVAR'}
+                    Resumen de productos
                   </p>
                 </div>
               </div>
@@ -127,6 +133,34 @@ export function CartDrawer() {
               >
                 <X size={20} />
               </button>
+            </div>
+
+            <div className="px-5 py-4 bg-white/10 border-b border-white/20">
+              <p className="text-xs font-bold text-text-secondary uppercase tracking-widest mb-3">¿Cómo lo quieres?</p>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => setSelectedType('DINE_IN')}
+                  className={`flex flex-col items-center justify-center p-3 rounded-2xl border transition-all ${
+                    selectedType === 'DINE_IN' 
+                    ? 'bg-accent-primary text-white border-accent-primary shadow-lg shadow-accent-primary/20' 
+                    : 'bg-white/40 text-text-secondary border-white/20 hover:bg-white/60'
+                  }`}
+                >
+                  <span className="text-sm font-bold">En mesa</span>
+                  {tableId && <span className="text-[10px] opacity-80">Mesa #{tableId}</span>}
+                </button>
+                <button
+                  onClick={() => setSelectedType('TAKEAWAY')}
+                  className={`flex flex-col items-center justify-center p-3 rounded-2xl border transition-all ${
+                    selectedType === 'TAKEAWAY' 
+                    ? 'bg-accent-primary text-white border-accent-primary shadow-lg shadow-accent-primary/20' 
+                    : 'bg-white/40 text-text-secondary border-white/20 hover:bg-white/60'
+                  }`}
+                >
+                  <span className="text-sm font-bold">Para llevar</span>
+                  <span className="text-[10px] opacity-80">Empacado</span>
+                </button>
+              </div>
             </div>
 
             <div className="flex-1 overflow-y-auto px-5 py-3">

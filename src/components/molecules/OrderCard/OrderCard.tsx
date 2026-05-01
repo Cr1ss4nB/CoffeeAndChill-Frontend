@@ -1,4 +1,4 @@
-import { Clock, ShoppingBag } from 'lucide-react';
+import { Clock, ShoppingBag, Utensils, Package, ArrowRight } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useSortable } from '@dnd-kit/sortable';
@@ -11,7 +11,13 @@ interface OrderCardProps {
   onStatusChange?: (orderId: number, newStatus: string) => void;
 }
 
-export function OrderCard({ order }: Readonly<OrderCardProps>) {
+export function OrderCard({ order, onStatusChange }: Readonly<OrderCardProps>) {
+  const isPending = order.status === 'PENDING';
+  const isInProgress = order.status === 'IN_PROGRESS';
+  const isTakeaway = order.order_type === 'TAKEAWAY';
+
+  const nextStatusLabel = isPending ? 'Preparar' : isInProgress ? 'Terminar' : null;
+  const nextStatusValue = isPending ? 'IN_PROGRESS' : isInProgress ? 'COMPLETED' : null;
   const sortableId = `order-${order.order_id}`;
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: sortableId,
@@ -44,8 +50,16 @@ export function OrderCard({ order }: Readonly<OrderCardProps>) {
       <div className="flex items-start justify-between gap-2">
         <div>
           <p className="text-xs text-text-secondary/60 font-medium">Pedido #{order.order_id}</p>
-          {order.table_id && (
-            <p className="text-sm font-bold text-text-primary">Mesa {order.table_id}</p>
+          {order.table_id ? (
+            <p className="text-sm font-bold text-text-primary flex items-center gap-1">
+              <Utensils size={14} className="text-accent-primary" />
+              Mesa {order.table_id}
+            </p>
+          ) : (
+            <p className="text-sm font-bold text-text-primary flex items-center gap-1">
+              <Package size={14} className="text-accent-primary" />
+              Para llevar
+            </p>
           )}
         </div>
         <OrderStatusBadge status={order.status} />
@@ -83,6 +97,19 @@ export function OrderCard({ order }: Readonly<OrderCardProps>) {
           ${order.total_amount.toLocaleString('es-CO')}
         </span>
       </div>
+
+      {nextStatusValue && onStatusChange && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onStatusChange(order.order_id, nextStatusValue);
+          }}
+          className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-accent-primary/10 hover:bg-accent-primary text-accent-primary hover:text-white transition-all text-xs font-bold border border-accent-primary/20"
+        >
+          {nextStatusLabel}
+          <ArrowRight size={14} />
+        </button>
+      )}
     </div>
   );
 }

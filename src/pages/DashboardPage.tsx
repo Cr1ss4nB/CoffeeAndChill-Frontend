@@ -22,7 +22,6 @@ export default function DashboardPage() {
   const { data: workshops } = useWorkshops();
   const navigate = useNavigate();
 
-  const inventory = inventoryData?.items || [];
   const todayOrders = orders?.length || 0;
   const pendingOrders = orders?.filter((o) => o.status === 'PENDING').length || 0;
   const lowStock = inventoryData?.low_stock_count ?? 0;

@@ -1,5 +1,5 @@
 import { QRCodeSVG } from 'qrcode.react';
-import { Download } from 'lucide-react';
+import { Download, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/atoms/Button/Button';
 
 interface QRCardProps {
@@ -8,37 +8,67 @@ interface QRCardProps {
 }
 
 export function QRCard({ tableNumber, baseUrl }: QRCardProps) {
-  const url = `${baseUrl}/menu?mesa=${tableNumber}`;
+  const url = `${baseUrl}/menu?table=${tableNumber}`;
 
-  function handleDownload() {
-    const svg = document.getElementById(`qr-${tableNumber}`);
+  const downloadQR = () => {
+    const svg = document.getElementById(`qr-table-${tableNumber}`);
     if (!svg) return;
     const svgData = new XMLSerializer().serializeToString(svg);
     const canvas = document.createElement('canvas');
-    canvas.width = 300;
-    canvas.height = 300;
     const ctx = canvas.getContext('2d');
     const img = new Image();
     img.onload = () => {
-      ctx?.drawImage(img, 0, 0, 300, 300);
-      const a = document.createElement('a');
-      a.download = `mesa-${tableNumber}-qr.png`;
-      a.href = canvas.toDataURL('image/png');
-      a.click();
+      canvas.width = img.width;
+      canvas.height = img.height;
+      ctx?.drawImage(img, 0, 0);
+      const pngFile = canvas.toDataURL('image/png');
+      const downloadLink = document.createElement('a');
+      downloadLink.download = `QR-Mesa-${tableNumber}.png`;
+      downloadLink.href = pngFile;
+      downloadLink.click();
     };
-    img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
-  }
+    img.src = `data:image/svg+xml;base64,${btoa(svgData)}`;
+  };
 
   return (
-    <div className="glass p-5 card-hover flex flex-col items-center">
-      <span className="font-display font-bold text-lg text-text-primary mb-3">Mesa {tableNumber}</span>
-      <div className="bg-white p-3 rounded-xl">
-        <QRCodeSVG id={`qr-${tableNumber}`} value={url} size={140} level="M" />
+    <div className="flex flex-col items-center gap-4">
+      <div className="bg-white p-4 rounded-2xl shadow-inner border border-white/40">
+        <QRCodeSVG
+          id={`qr-table-${tableNumber}`}
+          value={url}
+          size={160}
+          level="H"
+          includeMargin={false}
+          imageSettings={{
+            src: "/logo.png",
+            x: undefined,
+            y: undefined,
+            height: 30,
+            width: 30,
+            excavate: true,
+          }}
+        />
       </div>
-      <p className="text-[10px] text-text-secondary mt-2 truncate max-w-full">{url}</p>
-      <Button size="sm" variant="ghost" className="mt-3" onClick={handleDownload} icon={<Download size={14} />}>
-        Descargar PNG
-      </Button>
+      <div className="flex flex-col gap-2 w-full">
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          icon={<Download size={16} />} 
+          onClick={downloadQR}
+          className="text-xs"
+        >
+          Descargar PNG
+        </Button>
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          icon={<ExternalLink size={16} />}
+          onClick={() => window.open(url, '_blank')}
+          className="text-xs"
+        >
+          Probar enlace
+        </Button>
+      </div>
     </div>
   );
 }

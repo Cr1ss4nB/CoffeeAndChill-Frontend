@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { Button } from '@/components/atoms/Button/Button';
-import { SearchBar } from '@/components/molecules/SearchBar/SearchBar';
 import { WorkshopCard } from '@/components/molecules/WorkshopCard/WorkshopCard';
 import { WorkshopBookingModal } from '@/components/organisms/WorkshopBookingModal/WorkshopBookingModal';
 import { Spinner } from '@/components/atoms/Spinner/Spinner';

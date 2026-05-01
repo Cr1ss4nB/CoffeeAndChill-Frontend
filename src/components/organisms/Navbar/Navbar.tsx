@@ -1,6 +1,7 @@
 import { Bell, Menu } from 'lucide-react';
 import { Avatar } from '@/components/atoms/Avatar/Avatar';
 import { useAuthStore } from '@/store/auth.store';
+import { useUIStore } from '@/store/ui.store';
 import { useInventory } from '@/hooks/useInventory';
 
 interface NavbarProps {
@@ -9,6 +10,7 @@ interface NavbarProps {
 
 export function Navbar({ title }: Readonly<NavbarProps>) {
   const user = useAuthStore((s) => s.user);
+  const toggleSidebar = useUIStore((s) => s.toggleSidebar);
   const { data: inventoryData } = useInventory();
   const lowStockCount = inventoryData?.low_stock_count ?? 0;
 
@@ -17,7 +19,7 @@ export function Navbar({ title }: Readonly<NavbarProps>) {
       <div className="flex items-center gap-2 min-w-0 flex-1">
         <button
           type="button"
-          onClick={toggle}
+          onClick={toggleSidebar}
           className="md:hidden shrink-0 p-2 -ml-1 rounded-xl hover:bg-white/30 text-text-secondary hover:text-text-primary transition-colors"
           aria-label="Abrir o cerrar la navegación"
         >

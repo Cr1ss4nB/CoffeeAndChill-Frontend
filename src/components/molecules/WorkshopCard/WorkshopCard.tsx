@@ -17,10 +17,8 @@ interface WorkshopCardProps {
   workshop: Workshop;
   onReserve?: (workshop: Workshop) => void;
   adminMode?: boolean;
-  adminMode?: boolean;
 }
 
-export function WorkshopCard({ workshop, onReserve, adminMode }: WorkshopCardProps) {
 export function WorkshopCard({ workshop, onReserve, adminMode }: WorkshopCardProps) {
   const spotsLeft = workshop.totalSpots - workshop.reservedSpots;
   const isFull = spotsLeft <= 0;

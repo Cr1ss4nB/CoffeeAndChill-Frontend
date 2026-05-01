@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Pencil, Trash2, X, QrCode } from 'lucide-react';
+import { Plus, Pencil, X, QrCode } from 'lucide-react';
+
 import { DashboardTemplate } from '@/components/templates/DashboardTemplate/DashboardTemplate';
 import { Button } from '@/components/atoms/Button/Button';
 import { FormField } from '@/components/molecules/FormField/FormField';
+import { SearchBar } from '@/components/molecules/SearchBar/SearchBar';
 import { Spinner } from '@/components/atoms/Spinner/Spinner';
 import { QRCard } from '@/components/molecules/QRCard/QRCard';
 import api from '@/api/api.client';
@@ -23,6 +25,7 @@ export default function TablesPage() {
   const qc = useQueryClient();
   const [modal, setModal] = useState<TableSpot | 'new' | null>(null);
   const [showQR, setShowQR] = useState<number[]>([]);
+  const [search, setSearch] = useState('');
   const baseUrl = window.location.origin;
 
   const { data: tables, isLoading } = useQuery({
@@ -43,11 +46,6 @@ export default function TablesPage() {
     mutationFn: ({ id, data }: { id: number; data: any }) => api.put(`/tables/${id}`, data),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['tables'] }); toast.success('Mesa actualizada'); setModal(null); },
     onError: (err: any) => { toast.error(err.response?.data?.detail || 'Error actualizando mesa'); }
-  });
-
-  const deleteMut = useMutation({
-    mutationFn: (id: number) => api.delete(`/tables/${id}`),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['tables'] }); toast.success('Mesa desactivada'); },
   });
 
   function handleSave(e: React.FormEvent<HTMLFormElement>) {
@@ -84,8 +82,9 @@ export default function TablesPage() {
   const sectors = ['TODOS', ...Array.from(new Set(tables?.map(t => t.label || 'SIN ÁREA') || []))];
 
   const filteredTables = tables?.filter(t => {
-    if (activeSector === 'TODOS') return true;
-    return (t.label || 'SIN ÁREA') === activeSector;
+    const matchesSector = activeSector === 'TODOS' || (t.label || 'SIN ÁREA') === activeSector;
+    const matchesSearch = String(t.table_number).includes(search) || t.table_code.toLowerCase().includes(search.toLowerCase());
+    return matchesSector && matchesSearch;
   }) || [];
 
   return (
@@ -114,24 +113,28 @@ export default function TablesPage() {
         </div>
       )}
 
-      {/* Sectors Tabs */}
-      {!isLoading && sectors.length > 1 && (
-        <div className="flex flex-wrap gap-2 mb-6">
-          {sectors.map(sector => (
-            <button
-              key={sector}
-              onClick={() => setActiveSector(sector)}
-              className={`px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all ${
-                activeSector === sector 
-                ? 'bg-text-primary text-white shadow-md' 
-                : 'bg-white/40 text-text-secondary hover:bg-white/60'
-              }`}
-            >
-              {sector}
-            </button>
-          ))}
+      <div className="flex flex-col md:flex-row gap-3 mb-6">
+        <div className="flex-1">
+          <SearchBar value={search} onChange={setSearch} placeholder="Buscar mesa por número o código..." />
         </div>
-      )}
+        {!isLoading && sectors.length > 1 && (
+          <div className="flex flex-wrap gap-2">
+            {sectors.map(sector => (
+              <button
+                key={sector}
+                onClick={() => setActiveSector(sector)}
+                className={`px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all ${
+                  activeSector === sector 
+                  ? 'bg-text-primary text-white shadow-md' 
+                  : 'bg-white/40 text-text-secondary hover:bg-white/60'
+                }`}
+              >
+                {sector}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
 
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-lg font-bold text-text-primary">
