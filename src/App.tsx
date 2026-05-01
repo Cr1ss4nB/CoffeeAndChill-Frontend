@@ -20,12 +20,15 @@ const OrdersPage = lazy(() => import('@/pages/OrdersPage'));
 const DashboardPage = lazy(() => import('@/pages/DashboardPage'));
 
 const InventoryPage = lazy(() => import('@/pages/InventoryPage'));
-const WorkshopsPage = lazy(() => import('@/pages/WorkshopsPage'));
+
+const AdminWorkshopsPage = lazy(() => import('@/pages/AdminWorkshopsPage'));
+const WorkshopsPublicPage = lazy(() => import('@/pages/WorkshopsPublicPage'));
 
 const EmployeesPage = lazy(() => import('@/pages/EmployeesPage'));
-const QRManagementPage = lazy(() => import('@/pages/QRManagementPage'));
 const TablesPage = lazy(() => import('@/pages/TablesPage'));
 const ProductsPage = lazy(() => import('@/pages/ProductsPage'));
+const AnalyticsPage = lazy(() => import('@/pages/AnalyticsPage'));
+
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -52,15 +55,16 @@ export default function App() {
         <CartDrawer />
         <Suspense fallback={<Loading />}>
           <Routes>
-            {/* Redirige la raíz a login en lugar de /404 */}
-            <Route path="/" element={<Navigate to="/login" replace />} />
+            {/* Redirige la raíz a la carta pública */}
+            <Route path="/" element={<Navigate to="/menu" replace />} />
 
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/403" element={<ForbiddenPage />} />
 
-            {/* Carta pública: accesible sin autenticación */}
+            {/* Carta y talleres públicos */}
             <Route path="/menu" element={<MenuPage />} />
+            <Route path="/workshops-public" element={<WorkshopsPublicPage />} />
 
             <Route
               path="/orders"
@@ -99,7 +103,9 @@ export default function App() {
               path="/workshops"
               element={
                 <ProtectedRoute>
-                  <WorkshopsPage />
+                  <RoleGuard allowedRoles={['ADMIN']}>
+                    <AdminWorkshopsPage />
+                  </RoleGuard>
                 </ProtectedRoute>
               }
             />
@@ -138,11 +144,11 @@ export default function App() {
             />
 
             <Route
-              path="/qr"
+              path="/analytics"
               element={
                 <ProtectedRoute>
                   <RoleGuard allowedRoles={['ADMIN']}>
-                    <QRManagementPage />
+                    <AnalyticsPage />
                   </RoleGuard>
                 </ProtectedRoute>
               }

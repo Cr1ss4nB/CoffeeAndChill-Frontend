@@ -49,7 +49,9 @@ export async function deleteWorkshop(id: string): Promise<void> {
 
 export async function getWorkshops(): Promise<Workshop[]> {
   const response = await api.get('/workshops');
-  return response.data.map((w: any) => mapWorkshop(w));
+  // Handle both direct array responses and wrapped responses
+  const data = Array.isArray(response.data) ? response.data : (response.data?.data || []);
+  return data.map((w: any) => mapWorkshop(w));
 }
 
 export async function getReservations(workshopId: string): Promise<Reservation[]> {
@@ -71,17 +73,21 @@ export async function createReservation(data: Omit<Reservation, 'id' | 'attended
     full_name: data.name,
     email: data.email,
     phone: data.phone,
-    attendees: data.attendees
+    attendees: data.attendees,
+    schedule_id: data.scheduleId, // <-- AÑADIDO: Enviar el ID del horario
   });
   const r = response.data;
+  
+  // El backend ahora devuelve un objeto más completo y consistente
   return {
     id: String(r.reservation_id),
     workshopId: String(r.workshop_id),
+    scheduleId: String(r.schedule_id),
     name: r.full_name,
     email: r.email,
     phone: r.phone,
     attendees: r.attendees,
     attended: r.attended,
-    createdAt: r.created_at
+    createdAt: r.created_at,
   };
 }

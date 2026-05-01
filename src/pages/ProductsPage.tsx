@@ -15,6 +15,7 @@ export default function ProductsPage() {
   const qc = useQueryClient();
   const [modal, setModal] = useState<Product | 'new' | null>(null);
   const [search, setSearch] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<number | 'all'>('all');
 
   const { data: products, isLoading } = useQuery({
     queryKey: ['admin-products'],
@@ -59,7 +60,11 @@ export default function ProductsPage() {
 
   const statusMut = useMutation({
     mutationFn: ({ id, status }: { id: number; status: string }) => api.patch(`/products/${id}/status`, { status }),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['admin-products'] }); qc.invalidateQueries({ queryKey: ['products'] }); toast.success('Estado actualizado'); },
+    onSuccess: () => { 
+      qc.invalidateQueries({ queryKey: ['admin-products'] }); 
+      qc.invalidateQueries({ queryKey: ['products'] }); 
+      toast.success('Estado actualizado'); 
+    },
   });
 
   function handleSave(e: React.FormEvent<HTMLFormElement>) {
@@ -115,15 +120,21 @@ export default function ProductsPage() {
     }
   }
 
-  const filtered = products?.filter((p) => p.name.toLowerCase().includes(search.toLowerCase())) || [];
+  const filtered = (products || []).filter((p) => {
+    const matchesSearch = p.name.toLowerCase().includes(search.toLowerCase());
+    const matchesCategory = selectedCategory === 'all' || p.category_id === selectedCategory;
+    return matchesSearch && matchesCategory;
+  });
 
   return (
-    <DashboardTemplate title="Editar carta">
-      <p className="text-sm text-text-secondary mb-4 max-w-2xl">
-        Aquí se define lo que sale en la carta: precio, descripción, visibilidad e <strong>imágenes</strong> (archivo o URL
-        pública). Si la API aún no recibe <code className="text-xs">image</code> en multipart, basta con el campo de URL o
-        ajustar el contrato en el backend.
-      </p>
+    <DashboardTemplate title="Gestión de Productos">
+      <div className="mb-6">
+        <p className="text-sm text-text-secondary">
+          Define aquí los productos de tu menú (nombre, precio, categoría base). 
+          Para controlar el stock y ver movimientos, ve a la sección de <strong>Inventario</strong>.
+        </p>
+      </div>
+
       <div className="glass rounded-2xl p-4 mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <p className="text-sm text-text-primary">
           ¿Cómo se ve hoy? Abre la carta con los mismos datos que en sala.
@@ -139,9 +150,23 @@ export default function ProductsPage() {
         </Link>
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-3 mb-6">
+      <div className="flex flex-col lg:flex-row gap-3 mb-6">
         <div className="flex-1">
           <SearchBar value={search} onChange={setSearch} placeholder="Buscar en la carta…" />
+        </div>
+        <div className="w-full lg:w-48">
+          <select
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value === 'all' ? 'all' : Number(e.target.value))}
+            className="w-full px-4 py-2.5 rounded-xl text-sm bg-white/50 backdrop-blur-sm border border-white/40 focus:outline-none focus:ring-2 focus:ring-blush/50"
+          >
+            <option value="all">Todas las categorías</option>
+            {categories?.map((c) => (
+              <option key={c.category_id} value={c.category_id}>
+                {c.category_name}
+              </option>
+            ))}
+          </select>
         </div>
         <Button onClick={() => setModal('new')} icon={<Plus size={16} />}>
           Nuevo producto
@@ -152,68 +177,66 @@ export default function ProductsPage() {
          <div className="flex justify-center py-12"><Spinner size="lg" /></div>
       ) : (
         <div className="glass rounded-xl overflow-hidden p-0">
-            <table className="w-full text-left text-sm">
-              <thead className="bg-white/40 border-b border-white/20">
-                <tr>
-                  <th className="p-3 font-bold text-text-primary w-12">#</th>
-                  <th className="p-3 font-bold text-text-primary w-14">Foto</th>
-                  <th className="p-3 font-bold text-text-primary">Nombre</th>
-                  <th className="p-3 font-bold text-text-primary">Precio</th>
-                  <th className="p-3 font-bold text-text-primary">Stock</th>
-                  <th className="p-3 font-bold text-text-primary">Estado</th>
-                  <th className="p-3 font-bold text-text-primary text-right">Acciones</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-white/10">
-                {filtered.map((p) => (
-                  <tr key={p.product_id} className={`hover:bg-white/20 transition-colors ${p.status === 'INACTIVE' ? 'opacity-50' : ''}`}>
-                    <td className="p-3 text-text-secondary align-middle">#{p.product_id}</td>
-                    <td className="p-3 align-middle">
+          <table className="w-full text-left text-sm">
+            <thead className="bg-white/40 border-b border-white/20">
+              <tr>
+                <th className="p-4 font-bold text-text-primary w-12">#</th>
+                <th className="p-4 font-bold text-text-primary w-14">Imagen</th>
+                <th className="p-4 font-bold text-text-primary">Nombre</th>
+                <th className="p-4 font-bold text-text-primary">Precio</th>
+                <th className="p-4 font-bold text-text-primary">Stock</th>
+                <th className="p-4 font-bold text-text-primary">Estado</th>
+                <th className="p-4 font-bold text-text-primary text-right">Acciones</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-white/10">
+              {filtered.map((p) => (
+                <tr key={p.product_id} className={`hover:bg-white/20 transition-colors ${p.status === 'INACTIVE' ? 'opacity-50' : ''}`}>
+                  <td className="p-4 text-text-secondary align-middle">#{p.product_id}</td>
+                  <td className="p-4 align-middle">
+                    <div className="w-10 h-10 rounded-lg overflow-hidden bg-white/40 border border-white/20">
                       {p.image_url ? (
-                        <img
-                          src={p.image_url}
-                          alt={p.name}
-                          className="h-10 w-10 rounded-lg object-cover border border-white/30"
-                        />
+                        <img src={p.image_url} alt={p.name} className="w-full h-full object-cover" />
                       ) : (
-                        <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-blush/25 to-lavender/25 flex items-center justify-center text-xs font-display text-text-secondary/50">
+                        <div className="w-full h-full flex items-center justify-center text-text-secondary/50 text-xs">
                           {p.name.charAt(0)}
                         </div>
                       )}
-                    </td>
-                    <td className="p-3 font-medium text-text-primary align-middle">{p.name}</td>
-                    <td className="p-3 text-text-secondary align-middle">${p.price}</td>
-                    <td className="p-3 text-text-secondary align-middle">{p.stock_quantity}</td>
-                    <td className="p-3 align-middle">
-                      <span className={`px-2 py-1 rounded-full text-xs font-bold ${p.status === 'ACTIVE' ? 'bg-sage/40 text-green-700' : 'bg-red-100/50 text-red-600'}`}>
-                        {p.status}
-                      </span>
-                    </td>
-                    <td className="p-3 flex gap-2 justify-end align-middle">
-                      <button onClick={() => setModal(p)} className="p-2 rounded-lg hover:bg-white/40 text-text-secondary" aria-label="Editar">
-                        <Pencil size={18} />
-                      </button>
-                      <button onClick={() => {
-                          const newStatus = p.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
-                          if(confirm(`¿Marcar este producto como ${newStatus}?`)) {
-                              statusMut.mutate({ id: p.product_id, status: newStatus });
-                          }
-                      }} className="p-2 rounded-lg hover:bg-white/40 text-text-secondary" aria-label="Cambiar estado">
-                        {p.status === 'ACTIVE' ? <ToggleRight size={18} className="text-green-500" /> : <ToggleLeft size={18} />}
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                    </div>
+                  </td>
+                  <td className="p-4 font-medium text-text-primary align-middle">{p.name}</td>
+                  <td className="p-4 text-text-secondary align-middle">${p.price}</td>
+                  <td className="p-4 text-text-secondary align-middle">{p.stock_quantity}</td>
+                  <td className="p-4 align-middle">
+                    <span className={`px-2 py-1 rounded-full text-[10px] font-bold ${p.status === 'ACTIVE' ? 'bg-sage/40 text-green-700' : 'bg-red-100/50 text-red-600'}`}>
+                      {p.status}
+                    </span>
+                  </td>
+                  <td className="p-4 flex gap-2 justify-end align-middle">
+                    <button onClick={() => setModal(p)} className="p-2 rounded-lg hover:bg-white/40 text-text-secondary" aria-label="Editar">
+                      <Pencil size={18} />
+                    </button>
+                    <button onClick={() => {
+                        const newStatus = p.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
+                        if(confirm(`¿Marcar este producto como ${newStatus}?`)) {
+                            statusMut.mutate({ id: p.product_id, status: newStatus });
+                        }
+                    }} className="p-2 rounded-lg hover:bg-white/40 text-text-secondary" aria-label="Cambiar estado">
+                      {p.status === 'ACTIVE' ? <ToggleRight size={18} className="text-green-500" /> : <ToggleLeft size={18} />}
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
 
       {modal && (
-        <div className="fixed inset-y-0 right-0 w-full sm:w-96 z-50 glass !rounded-none !rounded-l-3xl p-6 overflow-y-auto shadow-2xl">
+        <div className="fixed inset-y-0 right-0 w-full sm:w-96 z-50 glass !rounded-none !rounded-l-3xl p-6 overflow-y-auto shadow-2xl shadow-black/20 animate-in slide-in-from-right duration-300">
           <div className="flex items-center justify-between mb-6">
             <h2 className="font-display font-bold text-lg text-text-primary">
-              {modal === 'new' ? 'Nuevo producto en la carta' : 'Editar producto en la carta'}
+              {modal === 'new' ? 'Nuevo producto' : 'Editar producto'}
             </h2>
             <button onClick={() => setModal(null)} className="p-1 rounded-lg hover:bg-white/40" type="button" aria-label="Cerrar">
               <X size={20} />
@@ -228,7 +251,7 @@ export default function ProductsPage() {
               defaultValue={modal !== 'new' && typeof modal === 'object' ? modal.name : ''}
             />
             <FormField
-              label="Descripción (visible en la carta)"
+              label="Descripción"
               fieldId="description"
               name="description"
               defaultValue={modal !== 'new' && typeof modal === 'object' ? modal.description : ''}
@@ -251,9 +274,9 @@ export default function ProductsPage() {
               </select>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-4 pt-2">
               <FormField
-                label="URL de imagen (opcional, si aún no subes archivo)"
+                label="URL de imagen (opcional)"
                 fieldId="image_url"
                 name="image_url"
                 type="url"
@@ -262,14 +285,14 @@ export default function ProductsPage() {
               />
               <div>
                 <label htmlFor="image" className="block text-sm font-medium text-text-primary mb-1">
-                  Subir imagen (JPG, PNG, WebP)
+                  O subir archivo
                 </label>
                 <input
                   id="image"
                   name="image"
                   type="file"
-                  accept="image/jpeg,image/png,image/webp,image/gif"
-                  className="block w-full text-sm text-text-secondary file:mr-3 file:rounded-lg file:border-0 file:bg-blush/30 file:px-3 file:py-2 file:font-medium file:text-text-primary"
+                  accept="image/*"
+                  className="block w-full text-xs text-text-secondary file:mr-3 file:rounded-lg file:border-0 file:bg-blush/30 file:px-3 file:py-1.5 file:font-medium file:text-text-primary"
                 />
               </div>
             </div>
@@ -306,7 +329,7 @@ export default function ProductsPage() {
             </div>
 
             <Button type="submit" className="w-full mt-4" loading={createMut.isPending || updateMut.isPending}>
-              Guardar en la carta
+              Guardar producto
             </Button>
           </form>
         </div>

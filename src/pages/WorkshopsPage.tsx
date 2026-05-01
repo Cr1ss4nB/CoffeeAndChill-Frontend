@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Plus } from 'lucide-react';
 import { WorkshopForm } from '@/components/organisms/WorkshopAdminPanel/WorkshopForm';
 import { DashboardTemplate } from '@/components/templates/DashboardTemplate/DashboardTemplate';
 import { WorkshopList } from '@/components/organisms/WorkshopList/WorkshopList';
@@ -17,6 +18,7 @@ export default function WorkshopsPage() {
   const [selectedWs, setSelectedWs] = useState<string | undefined>(undefined);
   const { data: reservations, isLoading: resLoading } = useReservations(selectedWs);
   const [showForm, setShowForm] = useState(false);
+  const [workshopSearch, setWorkshopSearch] = useState('');
   const [reservationSearch, setReservationSearch] = useState('');
   const [attendanceFilter, setAttendanceFilter] = useState<'ALL' | 'ATTENDED' | 'PENDING'>('ALL');
 
@@ -65,19 +67,24 @@ export default function WorkshopsPage() {
     reservationContent = <p className="text-center text-text-secondary py-4">No hay reservaciones que coincidan con los filtros</p>;
   }
 
+
   return (
     <DashboardTemplate title="Talleres">
-      {isAdmin && (
-        <div className="mb-4 flex justify-end">
-          <Button size="sm" onClick={() => setShowForm(true)}>
+      <div className="flex flex-col sm:flex-row gap-3 mb-6">
+        <div className="flex-1">
+          <SearchBar value={workshopSearch} onChange={setWorkshopSearch} placeholder="Buscar taller..." />
+        </div>
+        {isAdmin && (
+          <Button onClick={() => setShowForm(true)} icon={<Plus size={16} />}>
             Nuevo Taller
           </Button>
-        </div>
-      )}
+        )}
+      </div>
+
       {showForm && (
         <WorkshopForm onClose={() => setShowForm(false)} />
       )}
-      <WorkshopList />
+      <WorkshopList searchTerm={workshopSearch} />
 
       {/* Admin: reservations per workshop */}
       {isAdmin && workshops && workshops.length > 0 && (

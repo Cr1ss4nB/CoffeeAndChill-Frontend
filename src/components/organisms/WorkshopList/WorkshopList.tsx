@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { Button } from '@/components/atoms/Button/Button';
-import { SearchBar } from '@/components/molecules/SearchBar/SearchBar';
 import { WorkshopCard } from '@/components/molecules/WorkshopCard/WorkshopCard';
 import { WorkshopBookingModal } from '@/components/organisms/WorkshopBookingModal/WorkshopBookingModal';
 import { Spinner } from '@/components/atoms/Spinner/Spinner';
@@ -9,21 +8,29 @@ import type { Workshop } from '@/types';
 
 interface WorkshopListProps {
   adminMode?: boolean;
+  searchTerm?: string;
 }
 
-export function WorkshopList({ adminMode }: WorkshopListProps = {}) {
-  const { data: workshops, isLoading } = useWorkshops();
+export function WorkshopList({ adminMode, searchTerm = '' }: WorkshopListProps) {
+  const { data: workshops, isLoading, isError } = useWorkshops();
   const [selected, setSelected] = useState<Workshop | null>(null);
-  const [search, setSearch] = useState('');
   const [onlyAvailable, setOnlyAvailable] = useState(false);
 
   const filteredWorkshops = (workshops || [])
-    .filter((w) => w.name.toLowerCase().includes(search.toLowerCase()))
+    .filter((w) => w.name.toLowerCase().includes(searchTerm.toLowerCase()))
     .filter((w) => (onlyAvailable ? w.reservedSpots < w.totalSpots : true));
 
   if (isLoading) {
     return (
       <div className="flex justify-center py-12"><Spinner size="lg" /></div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="text-center py-8 text-red-500 bg-red-50 rounded-xl">
+        Error al cargar los talleres. Por favor intenta de nuevo.
+      </div>
     );
   }
 
@@ -33,10 +40,7 @@ export function WorkshopList({ adminMode }: WorkshopListProps = {}) {
 
   return (
     <>
-      <div className="flex flex-col sm:flex-row gap-3 mb-4">
-        <div className="flex-1">
-          <SearchBar value={search} onChange={setSearch} placeholder="Buscar taller..." />
-        </div>
+      <div className="flex justify-end mb-4">
         <Button
           variant={onlyAvailable ? 'primary' : 'ghost'}
           size="sm"
