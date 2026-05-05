@@ -17,7 +17,7 @@ const tabs: { key: InventoryCategory | 'movimientos'; label: string; icon: any }
 ];
 
 export function InventoryTable() {
-  const [activeTab, setActiveTab] = useState<InventoryCategory | 'movimientos'>('consumo');
+  const [activeTab, setActiveTab] = useState<InventoryCategory | 'movimientos'>('insumos');
   const [search, setSearch] = useState('');
   const [panel, setPanel] = useState<InventoryItem | 'new' | null>(null);
   

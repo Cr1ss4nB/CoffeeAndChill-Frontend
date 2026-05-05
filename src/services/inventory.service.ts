@@ -6,7 +6,13 @@ export async function getInventoryItems(): Promise<{ items: InventoryItem[], low
   const items = response.data.items.map((i: any) => ({
     id: String(i.product_id),
     name: i.name,
-    category: i.category.toLowerCase().includes('creativ') ? 'creativo' : 'consumo',
+    category: (i.category?.toLowerCase() ?? '').includes('creativ')
+      ? 'materiales'
+      : (i.category?.toLowerCase() ?? '').includes('insum')
+        ? 'insumos'
+        : (i.category?.toLowerCase() ?? '').includes('product')
+          ? 'productos'
+          : 'insumos',
     subcategory: i.category,
     stock: i.stock_quantity,
     unit: 'ud',
@@ -51,7 +57,7 @@ export async function createInventoryItem(
   };
 }
 
-export async function updateInventoryItem(_id: string, _data: Partial<InventoryItem>): Promise<InventoryItem> {
+export async function updateInventoryItem(): Promise<InventoryItem> {
   // Actualizar inventario significa hacer una corrección/ajuste.
   // El UI envía "stock" como el total deseado. El backend pide el ajuste.
   // Es mejor crear una función explícita para ajustes.
