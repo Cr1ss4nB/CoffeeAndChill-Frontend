@@ -75,7 +75,7 @@ export interface Order {
 }
 
 // ---- Inventory ----
-export type InventoryCategory = 'consumo' | 'creativo';
+export type InventoryCategory = 'insumos' | 'productos' | 'materiales' | 'consumo' | 'creativo';
 export type StockStatus = 'OK' | 'LOW' | 'OUT';
 
 export interface InventoryItem {
@@ -107,6 +107,7 @@ export interface Workshop {
 export interface Reservation {
   id: string;
   workshopId: string;
+  scheduleId?: string;
   name: string;
   email: string;
   phone: string;
