@@ -63,7 +63,10 @@ function Column({ column, orders }: Readonly<KanbanColumnProps>) {
       </div>
       <SortableContext items={orders.map((o) => `order-${o.order_id}`)} strategy={verticalListSortingStrategy}>
         {orders.map((order) => (
-          <OrderCard key={order.order_id} order={order} />
+          <OrderCard key={order.order_id} order={order} onStatusChange={(id, status) => {
+            const updateStatus = (window as any).updateStatusMutation;
+            if (updateStatus) updateStatus.mutate({ orderId: id, status });
+          }} />
         ))}
       </SortableContext>
       {orders.length === 0 && (
@@ -80,7 +83,10 @@ export function OrderKanbanBoard() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('ALL');
   const [typeFilter, setTypeFilter] = useState<TypeFilter>('ALL');
 
-  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 3 } }));
+
+  // Expose updateStatus to the window for the OrderCard callback (quick fix for the sibling component)
+  (window as any).updateStatusMutation = updateStatus;
 
   const filteredOrders = useMemo(() => {
     return (orders ?? []).filter((order) => {

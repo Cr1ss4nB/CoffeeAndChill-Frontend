@@ -76,7 +76,7 @@ export function Sidebar() {
           'md:relative md:translate-x-0 md:transition-all md:duration-300',
           sidebarOpen ? 'md:w-60' : 'md:w-16',
         ].join(' ')}
-        aria-hidden={isMobile && !mobileNavOpen ? true : undefined}
+        inert={isMobile && !mobileNavOpen ? true : undefined}
       >
         <div className="flex items-center gap-3 px-4 py-5 border-b border-white/20">
           <img

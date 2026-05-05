@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Package, Palette, Plus, X, Clock } from 'lucide-react';
+import { Package, Palette, Plus, X, Clock, ShoppingBag } from 'lucide-react';
 import { InventoryRow } from '@/components/molecules/InventoryRow/InventoryRow';
 import { SearchBar } from '@/components/molecules/SearchBar/SearchBar';
 import { Button } from '@/components/atoms/Button/Button';
@@ -10,8 +10,9 @@ import type { InventoryCategory, InventoryItem } from '@/types';
 import toast from 'react-hot-toast';
 
 const tabs: { key: InventoryCategory | 'movimientos'; label: string; icon: any }[] = [
-  { key: 'consumo', label: 'Consumo', icon: Package },
-  { key: 'creativo', label: 'Creativo', icon: Palette },
+  { key: 'insumos', label: 'Insumos', icon: Package },
+  { key: 'productos', label: 'Productos', icon: ShoppingBag },
+  { key: 'materiales', label: 'Materiales (Artel)', icon: Palette },
   { key: 'movimientos', label: 'Historial', icon: Clock },
 ];
 
@@ -20,14 +21,15 @@ export function InventoryTable() {
   const [search, setSearch] = useState('');
   const [panel, setPanel] = useState<InventoryItem | 'new' | null>(null);
   
-  const { data: items, isLoading } = useInventory();
+  const { data: inventoryData, isLoading } = useInventory();
+  const items = inventoryData?.items || [];
   const { data: movementsInfo, isLoading: isLoadingMovs } = useInventoryMovements(1, 40);
   
   const createItem = useCreateInventoryItem();
   const adjustItem = useAdjustInventoryItem();
 
   const filtered = items
-    ?.filter((i) => i.category === activeTab)
+    .filter((i) => i.category === activeTab)
     .filter((i) => i.name.toLowerCase().includes(search.toLowerCase())) || [];
 
   function handleSave(e: React.FormEvent<HTMLFormElement>) {
@@ -66,6 +68,32 @@ export function InventoryTable() {
 
   return (
     <div className="relative">
+      <div className="mb-4">
+        <p className="text-sm text-text-secondary">
+          Control de existencias y stock. Los productos listados aquí se definen en el <strong>Catálogo de Productos</strong>.
+        </p>
+      </div>
+      {/* Summary Cards */}
+      {!isLoading && activeTab !== 'movimientos' && (
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+          <div className="glass p-4 !rounded-2xl border-l-4 border-sky">
+            <p className="text-xs text-text-secondary font-bold uppercase tracking-wider">Total Productos</p>
+            <p className="text-2xl font-display font-bold text-text-primary">{items.length}</p>
+          </div>
+          <div className="glass p-4 !rounded-2xl border-l-4 border-blush">
+            <p className="text-xs text-text-secondary font-bold uppercase tracking-wider">Stock Bajo / Agotado</p>
+            <p className="text-2xl font-display font-bold text-text-primary">{inventoryData?.low_stock_count ?? 0}</p>
+          </div>
+          <div className="glass p-4 !rounded-2xl border-l-4 border-sage">
+            <p className="text-xs text-text-secondary font-bold uppercase tracking-wider">Última Actividad</p>
+            <p className="text-sm font-medium text-text-primary truncate">
+              {movementsInfo?.items?.[0]?.product_name ?? 'Sin movimientos'}
+            </p>
+            <p className="text-[10px] text-text-secondary">Hace un momento</p>
+          </div>
+        </div>
+      )}
+
       <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
         <div className="flex gap-2">
           {tabs.map(({ key, label, icon: Icon }) => (
@@ -162,8 +190,11 @@ export function InventoryTable() {
                 <div>
                   <label className="block text-sm font-medium text-text-primary mb-1">Categoría</label>
                   <select name="category" className="w-full px-4 py-2.5 rounded-xl text-sm bg-white/50 backdrop-blur-sm border border-white/40 focus:outline-none focus:ring-2 focus:ring-blush/50">
-                    <option value="consumo">Consumo</option>
-                    <option value="creativo">Creativo</option>
+                    <option value="insumos">Insumos</option>
+                    <option value="productos">Productos</option>
+                    <option value="materiales">Materiales (Artel)</option>
+                    <option value="consumo">Consumo (Legacy)</option>
+                    <option value="creativo">Creativo (Legacy)</option>
                   </select>
                 </div>
                 <FormField label="Subcategoría (o Descripción)" fieldId="subcategory" name="subcategory" required />
