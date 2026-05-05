@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
-  PieChart, Pie, Cell, AreaChart, Area
+  PieChart, Pie, Cell
 } from 'recharts';
 import { 
   TrendingUp, Package, ShoppingBag, AlertTriangle, 
@@ -16,8 +16,8 @@ import { PowerBIVisual } from '@/components/organisms/PowerBIVisual/PowerBIVisua
 const COLORS = ['#FFC0CB', '#87CEEB', '#E6E6FA', '#F5F5DC', '#FFDAB9'];
 
 export default function AnalyticsPage() {
-  const { data: inventoryData, isLoading: isLoadingInv } = useInventory();
-  const { data: ordersData, isLoading: isLoadingOrders } = useOrdersBoard();
+  const { data: inventoryData } = useInventory();
+  const { data: ordersData } = useOrdersBoard();
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Mock Power BI URL
@@ -141,7 +141,7 @@ export default function AnalyticsPage() {
                     paddingAngle={5}
                     dataKey="value"
                   >
-                    {categoryData.map((entry, index) => (
+                    {categoryData.map((_entry, index) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>

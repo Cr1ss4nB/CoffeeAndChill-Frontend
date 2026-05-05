@@ -18,6 +18,9 @@ export interface Product {
   status: string;
   description?: string;
   image_url?: string;
+  fulfillment_type?: string;
+  available_to_sell?: number;
+  ingredient_limited?: boolean;
 }
 
 export function useCategories() {

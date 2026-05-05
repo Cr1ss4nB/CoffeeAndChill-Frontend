@@ -16,6 +16,15 @@ export function LoginForm() {
   const location = useLocation();
   const returnTo = (location.state as { returnTo?: string } | null)?.returnTo;
 
+  function customerSafeDestination(path: string | undefined) {
+    if (!path) return '/menu';
+    const staffOnly = ['/orders', '/dashboard', '/inventory', '/employees', '/products', '/ingredients', '/tables', '/qr'];
+    if (staffOnly.some((p) => path === p || path.startsWith(`${p}/`))) {
+      return '/menu';
+    }
+    return path;
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
@@ -31,7 +40,7 @@ export function LoginForm() {
       } else if (user?.role === 'EMPLOYEE') {
         navigate('/orders');
       } else {
-        navigate(returnTo || '/menu');
+        navigate(customerSafeDestination(returnTo));
       }
     } catch (error: any) {
       const message = error.response?.data?.detail || 'Credenciales incorrectas';

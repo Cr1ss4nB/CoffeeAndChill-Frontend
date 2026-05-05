@@ -1,4 +1,4 @@
-/**import { useState } from 'react';
+import { useState } from 'react';
 import { Package, Palette, Plus, X, Clock, ShoppingBag } from 'lucide-react';
 import { InventoryRow } from '@/components/molecules/InventoryRow/InventoryRow';
 import { SearchBar } from '@/components/molecules/SearchBar/SearchBar';
@@ -17,7 +17,7 @@ const tabs: { key: InventoryCategory | 'movimientos'; label: string; icon: any }
 ];
 
 export function InventoryTable() {
-  const [activeTab, setActiveTab] = useState<InventoryCategory | 'movimientos'>('consumo');
+  const [activeTab, setActiveTab] = useState<InventoryCategory | 'movimientos'>('insumos');
   const [search, setSearch] = useState('');
   const [panel, setPanel] = useState<InventoryItem | 'new' | null>(null);
   
@@ -73,7 +73,7 @@ export function InventoryTable() {
           Control de existencias y stock. Los productos listados aquí se definen en el <strong>Catálogo de Productos</strong>.
         </p>
       </div>
-      { Summary Cards }
+      {/* Summary Cards */}
       {!isLoading && activeTab !== 'movimientos' && (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
           <div className="glass p-4 !rounded-2xl border-l-4 border-sky">
@@ -232,4 +232,3 @@ export function InventoryTable() {
     </div>
   );
 }
-*/

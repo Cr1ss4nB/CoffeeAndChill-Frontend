@@ -14,7 +14,6 @@ interface OrderCardProps {
 export function OrderCard({ order, onStatusChange }: Readonly<OrderCardProps>) {
   const isPending = order.status === 'PENDING';
   const isInProgress = order.status === 'IN_PROGRESS';
-  const isTakeaway = order.order_type === 'TAKEAWAY';
 
   const nextStatusLabel = isPending ? 'Preparar' : isInProgress ? 'Terminar' : null;
   const nextStatusValue = isPending ? 'IN_PROGRESS' : isInProgress ? 'COMPLETED' : null;
