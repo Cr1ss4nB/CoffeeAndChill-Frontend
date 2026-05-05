@@ -18,13 +18,13 @@ function formatCOP(value: number): string {
 
 export default function DashboardPage() {
   const { data: orders } = useOrdersBoard();
-  const { data: inventory } = useInventory();
+  const { data: inventoryData } = useInventory();
   const { data: workshops } = useWorkshops();
   const navigate = useNavigate();
 
   const todayOrders = orders?.length || 0;
   const pendingOrders = orders?.filter((o) => o.status === 'PENDING').length || 0;
-  const lowStock = inventory?.filter((i) => i.status === 'LOW' || i.status === 'OUT').length || 0;
+  const lowStock = inventoryData?.low_stock_count ?? 0;
   const activeWorkshops = workshops?.filter((w) => new Date(w.date) >= new Date()).length || 0;
 
   const recentOrders = orders?.slice(0, 5) || [];
