@@ -6,9 +6,7 @@ import {
   CalendarDays,
   BookOpen,
   Users,
-  QrCode,
   ListOrdered,
-  FileEdit,
   Eye,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
@@ -25,20 +23,19 @@ export interface NavItem {
 
 export const navItems: NavItem[] = [
   { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard', adminOnly: true },
-  { to: '/orders', icon: UtensilsCrossed, label: 'Pedidos', staffOnly: true },
-  { to: '/inventory', icon: Package, label: 'Inventario', staffOnly: true },
+  { to: '/orders', icon: UtensilsCrossed, label: 'Panel de Pedidos', staffOnly: true },
+  { to: '/inventory', icon: Package, label: 'Gestión de Almacén', staffOnly: true },
   { to: '/ingredients', icon: FlaskConical, label: 'Insumos', staffOnly: true },
-  { to: '/products', icon: FileEdit, label: 'Editar carta', staffOnly: true, navKey: 'edit-carta' },
-  { to: '/menu', icon: BookOpen, label: 'Menú', customerOnly: true, navKey: 'menu-cliente' },
+  { to: '/menu', icon: BookOpen, label: 'Menú Cliente', customerOnly: true, navKey: 'menu-cliente' },
   {
     to: '/menu',
     icon: Eye,
-    label: 'Vista previa — carta',
+    label: 'Vista Previa Menú',
     staffOnly: true,
     navKey: 'menu-vista',
   },
-  { to: '/workshops', icon: CalendarDays, label: 'Talleres' },
-  { to: '/employees', icon: Users, label: 'Empleados', adminOnly: true },
-  { to: '/tables', icon: ListOrdered, label: 'Mesas', adminOnly: true },
-  { to: '/qr', icon: QrCode, label: 'QR Mesas', adminOnly: true },
+  { to: '/workshops', icon: CalendarDays, label: 'Talleres y Eventos' },
+  { to: '/employees', icon: Users, label: 'Recursos Humanos', adminOnly: true },
+  { to: '/tables', icon: ListOrdered, label: 'Gestión de Mesas', adminOnly: true },
+  { to: '/analytics', icon: LayoutDashboard, label: 'Análisis de Negocio', adminOnly: true },
 ];
