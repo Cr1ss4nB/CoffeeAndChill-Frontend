@@ -27,6 +27,7 @@ const EmployeesPage = lazy(() => import('@/pages/EmployeesPage'));
 const TablesPage = lazy(() => import('@/pages/TablesPage'));
 const IngredientsPage = lazy(() => import('@/pages/IngredientsPage'));
 const AnalyticsPage = lazy(() => import('@/pages/AnalyticsPage'));
+const CategoriesPage = lazy(() => import('@/pages/CategoriesPage').then(m => ({ default: m.default })));
 
 
 const queryClient = new QueryClient({
@@ -137,6 +138,17 @@ export default function App() {
                 <ProtectedRoute>
                   <RoleGuard allowedRoles={['ADMIN']}>
                     <TablesPage />
+                  </RoleGuard>
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/categories"
+              element={
+                <ProtectedRoute>
+                  <RoleGuard allowedRoles={['ADMIN']}>
+                    <CategoriesPage />
                   </RoleGuard>
                 </ProtectedRoute>
               }

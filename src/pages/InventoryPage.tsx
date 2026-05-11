@@ -683,6 +683,7 @@ export default function InventoryPage() {
                 <th className="p-4 font-bold text-text-primary w-12">#</th>
                 <th className="p-4 font-bold text-text-primary w-14">Imagen</th>
                 <th className="p-4 font-bold text-text-primary">Nombre</th>
+                <th className="p-4 font-bold text-text-primary">Categoría</th>
                 <th className="p-4 font-bold text-text-primary">Precio</th>
                 <th className="p-4 font-bold text-text-primary">Stock</th>
                 <th className="p-4 font-bold text-text-primary">Estado</th>
@@ -716,6 +717,9 @@ export default function InventoryPage() {
                       {isRecipe && (
                         <span className="text-[10px] text-blush font-semibold">Por receta</span>
                       )}
+                    </td>
+                    <td className="p-4 text-text-secondary text-xs align-middle">
+                      {categories?.find((c) => c.category_id === p.category_id)?.category_name || '—'}
                     </td>
                     <td className="p-4 text-text-secondary align-middle">${p.price}</td>
                     <td className="p-4 align-middle">
@@ -779,7 +783,7 @@ export default function InventoryPage() {
               })}
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="p-8 text-center text-text-secondary">
+                  <td colSpan={8} className="p-8 text-center text-text-secondary">
                     {activeTab === 'disabled'
                       ? 'No hay productos deshabilitados'
                       : 'No se encontraron productos'}
