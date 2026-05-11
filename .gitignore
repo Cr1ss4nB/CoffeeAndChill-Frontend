@@ -26,3 +26,5 @@ dist-ssr
 *.sw?
 
 CLAUDE.md
+.agents
+skills-lock.json
