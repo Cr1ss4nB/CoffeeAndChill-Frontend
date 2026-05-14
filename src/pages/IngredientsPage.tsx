@@ -12,7 +12,11 @@ import {
   useAdjustIngredientStock,
 } from '@/hooks/useIngredients';
 import type { Ingredient } from '@/services/ingredients.service';
+import { getCategories, type Category } from '@/services/categories.service';
+import { CategoryManager } from '@/components/organisms/CategoryManager';
+import { FolderTree } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useEffect } from 'react';
 
 type PanelMode =
   | { type: 'new' }
@@ -38,6 +42,15 @@ export default function IngredientsPage() {
   const updateMut = useUpdateIngredient();
   const adjustMut = useAdjustIngredientStock();
 
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [showCategoryManager, setShowCategoryManager] = useState(false);
+
+  useEffect(() => {
+    getCategories().then((data) => {
+      setCategories(data.filter((c) => c.type === 'INGREDIENT'));
+    });
+  }, [showCategoryManager]);
+
   const filtered = (ingredients ?? []).filter((i) =>
     i.name.toLowerCase().includes(search.toLowerCase())
   );
@@ -53,6 +66,7 @@ export default function IngredientsPage() {
           unit: fd.get('unit') as string,
           description: (fd.get('description') as string) || undefined,
           min_stock: Number(fd.get('min_stock')),
+          category_id: fd.get('category_id') ? Number(fd.get('category_id')) : undefined,
         },
         {
           onSuccess: () => { toast.success('Insumo creado'); setPanel(null); },
@@ -68,6 +82,7 @@ export default function IngredientsPage() {
             unit: fd.get('unit') as string,
             description: (fd.get('description') as string) || undefined,
             min_stock: Number(fd.get('min_stock')),
+            category_id: fd.get('category_id') ? Number(fd.get('category_id')) : undefined,
           },
         },
         {
@@ -108,6 +123,9 @@ export default function IngredientsPage() {
         <div className="flex-1">
           <SearchBar value={search} onChange={setSearch} placeholder="Buscar insumo..." />
         </div>
+        <Button onClick={() => setShowCategoryManager(true)} variant="ghost" icon={<FolderTree size={16} />}>
+          Gestionar Categorías
+        </Button>
         <Button onClick={() => setPanel({ type: 'new' })} icon={<Plus size={16} />}>
           Nuevo insumo
         </Button>
@@ -248,6 +266,23 @@ export default function IngredientsPage() {
                   required
                   defaultValue={panel.type === 'edit' ? String(panel.ingredient.min_stock) : '0'}
                 />
+                <div>
+                  <label className="block text-sm font-medium text-text-primary mb-1">
+                    Categoría (opcional)
+                  </label>
+                  <select
+                    name="category_id"
+                    defaultValue={panel.type === 'edit' ? String(panel.ingredient.category_id ?? '') : ''}
+                    className="w-full px-4 py-2.5 rounded-xl text-sm bg-white/50 backdrop-blur-sm border border-white/40 focus:outline-none focus:ring-2 focus:ring-blush/50"
+                  >
+                    <option value="">Sin categoría</option>
+                    {categories.map((cat) => (
+                      <option key={cat.category_id} value={cat.category_id}>
+                        {cat.category_name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </>
             )}
 
@@ -297,6 +332,10 @@ export default function IngredientsPage() {
             </Button>
           </form>
         </div>
+      )}
+      {/* Modal de gestión de categorías */}
+      {showCategoryManager && (
+        <CategoryManager onClose={() => setShowCategoryManager(false)} />
       )}
     </DashboardTemplate>
   );

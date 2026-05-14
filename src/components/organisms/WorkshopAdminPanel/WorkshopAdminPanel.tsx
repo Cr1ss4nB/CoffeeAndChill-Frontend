@@ -4,9 +4,12 @@ import { Button } from '@/components/atoms/Button/Button';
 import { SearchBar } from '@/components/molecules/SearchBar/SearchBar';
 import { WorkshopList } from '@/components/organisms/WorkshopList/WorkshopList';
 import { WorkshopForm } from '@/components/organisms/WorkshopAdminPanel/WorkshopForm';
+import { CategoryManager } from '@/components/organisms/CategoryManager';
+import { FolderTree } from 'lucide-react';
 
 export const WorkshopAdminPanel: React.FC = () => {
   const [showForm, setShowForm] = useState(false);
+  const [showCategoryManager, setShowCategoryManager] = useState(false);
   const [search, setSearch] = useState('');
   const handleNewWorkshop = () => setShowForm(true);
   const handleCloseForm = () => setShowForm(false);
@@ -17,12 +20,16 @@ export const WorkshopAdminPanel: React.FC = () => {
         <div className="flex-1 w-full">
           <SearchBar value={search} onChange={setSearch} placeholder="Buscar taller..." />
         </div>
+        <Button onClick={() => setShowCategoryManager(true)} variant="ghost" icon={<FolderTree size={16} />} className="w-full sm:w-auto">
+          Gestionar Categorías
+        </Button>
         <Button onClick={handleNewWorkshop} icon={<Plus size={16} />} className="w-full sm:w-auto">
           Nuevo Taller
         </Button>
       </div>
       
       {showForm && <WorkshopForm onClose={handleCloseForm} />}
+      {showCategoryManager && <CategoryManager onClose={() => setShowCategoryManager(false)} />}
       <WorkshopList adminMode searchTerm={search} />
     </div>
   );
