@@ -12,7 +12,7 @@ const LoginPage = lazy(() => import('@/pages/LoginPage'));
 const RegisterPage = lazy(() => import('@/pages/RegisterPage'));
 const NotFoundPage = lazy(() => import('@/pages/NotFoundPage'));
 
-const MenuPage = lazy(() => import('@/pages/MenuPage').then(m => ({ default: m.MenuPage })));
+const CustomerMenuPage = lazy(() => import('@/pages/CustomerMenuPage'));
 
 const OrdersPage = lazy(() => import('@/pages/OrdersPage'));
 
@@ -28,6 +28,7 @@ const TablesPage = lazy(() => import('@/pages/TablesPage'));
 const IngredientsPage = lazy(() => import('@/pages/IngredientsPage'));
 const AnalyticsPage = lazy(() => import('@/pages/AnalyticsPage'));
 const CategoriesPage = lazy(() => import('@/pages/CategoriesPage').then(m => ({ default: m.default })));
+const SalesHistoryPage = lazy(() => import('@/pages/SalesHistoryPage'));
 
 
 const queryClient = new QueryClient({
@@ -61,7 +62,8 @@ export default function App() {
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/403" element={<Navigate to="/menu" replace />} />
 
-            <Route path="/menu" element={<MenuPage />} />
+            <Route path="/menu" element={<CustomerMenuPage />} />
+            <Route path="/menu/:tableCode" element={<CustomerMenuPage />} />
             <Route path="/workshops-public" element={<WorkshopsPublicPage />} />
 
             <Route
@@ -160,6 +162,17 @@ export default function App() {
                 <ProtectedRoute>
                   <RoleGuard allowedRoles={['ADMIN']}>
                     <AnalyticsPage />
+                  </RoleGuard>
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/sales"
+              element={
+                <ProtectedRoute>
+                  <RoleGuard allowedRoles={['ADMIN', 'EMPLOYEE']}>
+                    <SalesHistoryPage />
                   </RoleGuard>
                 </ProtectedRoute>
               }
