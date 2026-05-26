@@ -8,6 +8,7 @@ import {
   Users,
   ListOrdered,
   Eye,
+  Tags,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -26,6 +27,7 @@ export const navItems: NavItem[] = [
   { to: '/orders', icon: UtensilsCrossed, label: 'Panel de Pedidos', staffOnly: true },
   { to: '/inventory', icon: Package, label: 'Gestión de Almacén', staffOnly: true },
   { to: '/ingredients', icon: FlaskConical, label: 'Insumos', staffOnly: true },
+  { to: '/categories', icon: Tags, label: 'Categorías', adminOnly: true },
   { to: '/menu', icon: BookOpen, label: 'Menú Cliente', customerOnly: true, navKey: 'menu-cliente' },
   {
     to: '/menu',
