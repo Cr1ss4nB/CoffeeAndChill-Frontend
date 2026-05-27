@@ -5,7 +5,7 @@ import { FormField } from '@/components/molecules/FormField/FormField';
 import { Label } from '@/components/atoms/Label/Label';
 import { Textarea } from '@/components/atoms/Textarea/Textarea';
 import { getWorkshopCategories } from '@/services/categories.service';
-import type { Category } from '@/services/categories.service';
+import type { Category } from '@/hooks/useCatalog';
 import { createWorkshop } from '@/services/workshops.service';
 
 interface WorkshopFormProps {
