@@ -4,6 +4,7 @@ import { isStaffUser, useAuthStore } from '@/store/auth.store';
 import { useUIStore } from '@/store/ui.store';
 import type { Product } from '@/hooks/useCatalog';
 import type { Product as StoreProduct } from '@/types';
+import { buildMediaUrl } from '@/api/api.client';
 
 function formatCOP(value: number): string {
   return new Intl.NumberFormat('es-CO', {
@@ -43,9 +44,9 @@ export function ProductCard({ product }: ProductCardProps) {
   return (
     <div className="glass group overflow-hidden flex flex-col h-full hover:border-accent-primary/30 transition-all duration-300">
       <div className="aspect-square bg-gradient-to-br from-blush/20 to-lavender/20 flex items-center justify-center overflow-hidden">
-        {product.image_url ? (
+        {buildMediaUrl(product.image_url) ? (
           <img
-            src={product.image_url}
+            src={buildMediaUrl(product.image_url)!}
             alt={product.name}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           />

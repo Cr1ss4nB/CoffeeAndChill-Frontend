@@ -1,6 +1,4 @@
-import { Clock, ShoppingBag, Utensils, Package, ArrowRight } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { ShoppingBag, Utensils, Package, ArrowRight, MessageSquare } from 'lucide-react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { OrderStatusBadge } from '@/components/molecules/OrderStatusBadge/OrderStatusBadge';
@@ -13,10 +11,11 @@ interface OrderCardProps {
 
 export function OrderCard({ order, onStatusChange }: Readonly<OrderCardProps>) {
   const isPending = order.status === 'PENDING';
-  const isInProgress = order.status === 'IN_PROGRESS';
+  const isPreparing = order.status === 'PREPARING';
+  const isReady = order.status === 'READY';
 
-  const nextStatusLabel = isPending ? 'Preparar' : isInProgress ? 'Terminar' : null;
-  const nextStatusValue = isPending ? 'IN_PROGRESS' : isInProgress ? 'COMPLETED' : null;
+  const nextStatusLabel = isPending ? 'Iniciar preparación' : isPreparing ? 'Marcar listo' : isReady ? 'Entregado' : null;
+  const nextStatusValue = isPending ? 'PREPARING' : isPreparing ? 'READY' : isReady ? 'DELIVERED' : null;
   const sortableId = `order-${order.order_id}`;
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: sortableId,
@@ -33,11 +32,6 @@ export function OrderCard({ order, onStatusChange }: Readonly<OrderCardProps>) {
     opacity: isDragging ? 0.8 : 1,
   };
 
-  const timeAgo = formatDistanceToNow(new Date(order.order_date), {
-    addSuffix: true,
-    locale: es,
-  });
-
   return (
     <div
       ref={setNodeRef}
@@ -52,7 +46,14 @@ export function OrderCard({ order, onStatusChange }: Readonly<OrderCardProps>) {
           {order.table_id ? (
             <p className="text-sm font-bold text-text-primary flex items-center gap-1">
               <Utensils size={14} className="text-accent-primary" />
-              Mesa {order.table_id}
+              Mesa {order.table_number ?? order.table_id}
+              {order.table_code && <span className="text-xs font-normal text-text-secondary/60 ml-1">· {order.table_code}</span>}
+            </p>
+          ) : order.order_type === 'DINE_IN' ? (
+            <p className="text-sm font-bold text-text-primary flex items-center gap-1">
+              <Utensils size={14} className="text-purple-500" />
+              En mesa
+              <span className="text-[10px] font-normal text-purple-400 ml-1">· sin asignar</span>
             </p>
           ) : (
             <p className="text-sm font-bold text-text-primary flex items-center gap-1">
@@ -71,13 +72,22 @@ export function OrderCard({ order, onStatusChange }: Readonly<OrderCardProps>) {
         </span>
       </div>
 
-      <ul className="space-y-1">
+      <ul className="space-y-1.5">
         {order.items.slice(0, 3).map((item) => (
-          <li key={item.item_id} className="flex justify-between text-xs">
-            <span className="text-text-secondary truncate">{item.quantity}× Producto #{item.product_id}</span>
-            <span className="text-text-secondary/60 shrink-0 ml-2">
-              ${item.subtotal.toLocaleString('es-CO')}
-            </span>
+          <li key={item.item_id} className="text-xs">
+            <div className="flex justify-between">
+              <span className="text-text-secondary truncate">
+                {item.quantity}× {item.product_name ?? `#${item.product_id}`}
+              </span>
+              <span className="text-text-secondary/60 shrink-0 ml-2">
+                ${item.subtotal.toLocaleString('es-CO')}
+              </span>
+            </div>
+            {item.special_instructions && (
+              <p className="mt-0.5 ml-3 text-[10px] text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded-md italic">
+                {item.special_instructions}
+              </p>
+            )}
           </li>
         ))}
         {order.items.length > 3 && (
@@ -87,11 +97,15 @@ export function OrderCard({ order, onStatusChange }: Readonly<OrderCardProps>) {
         )}
       </ul>
 
-      <div className="flex items-center justify-between pt-1 border-t border-white/20">
-        <div className="flex items-center gap-1 text-xs text-text-secondary/60">
-          <Clock size={11} />
-          <span>{timeAgo}</span>
+      {/* Order-level notes */}
+      {order.notes && (
+        <div className="flex items-start gap-1.5 px-2 py-1.5 rounded-lg bg-blue-50/60 border border-blue-100/60 text-[11px] text-blue-700">
+          <MessageSquare size={11} className="shrink-0 mt-0.5" />
+          <span className="italic">{order.notes}</span>
         </div>
+      )}
+
+      <div className="flex items-center justify-end pt-1 border-t border-white/20">
         <span className="text-sm font-bold text-accent-primary">
           ${order.total_amount.toLocaleString('es-CO')}
         </span>
