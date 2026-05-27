@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, X, Pencil, AlertTriangle } from 'lucide-react';
+import { Plus, X, AlertTriangle, Pencil } from 'lucide-react';
 import { DashboardTemplate } from '@/components/templates/DashboardTemplate/DashboardTemplate';
 import { Button } from '@/components/atoms/Button/Button';
 import { FormField } from '@/components/molecules/FormField/FormField';
@@ -14,18 +14,14 @@ import {
 import type { Ingredient } from '@/services/ingredients.service';
 import toast from 'react-hot-toast';
 
-type PanelMode =
-  | { type: 'new' }
-  | { type: 'adjust'; ingredient: Ingredient }
-  | { type: 'edit'; ingredient: Ingredient }
-  | null;
+type PanelMode = { type: 'new' } | { type: 'edit'; ingredient: Ingredient } | null;
 
 const UNITS = ['g', 'kg', 'ml', 'l', 'units'];
 const ADJUST_REASONS = [
-  { value: 'RECEIPT', label: 'Ingreso / Compra' },
-  { value: 'RETURN', label: 'Devolución' },
-  { value: 'LOSS', label: 'Pérdida / Merma' },
-  { value: 'WASTE', label: 'Desperdicio' },
+  { value: 'RECEIPT',    label: 'Ingreso / Compra' },
+  { value: 'RETURN',     label: 'Devolución' },
+  { value: 'LOSS',       label: 'Pérdida / Merma' },
+  { value: 'WASTE',      label: 'Desperdicio' },
   { value: 'ADJUSTMENT', label: 'Corrección manual' },
 ];
 
@@ -47,49 +43,62 @@ export default function IngredientsPage() {
     const fd = new FormData(e.currentTarget);
 
     if (panel?.type === 'new') {
+      const initialStock = Number(fd.get('initial_stock') || 0);
       createMut.mutate(
         {
           name: fd.get('name') as string,
           unit: fd.get('unit') as string,
-          description: (fd.get('description') as string) || undefined,
-          min_stock: Number(fd.get('min_stock')),
+          min_stock: Number(fd.get('min_stock') || 0),
         },
         {
-          onSuccess: () => { toast.success('Insumo creado'); setPanel(null); },
+          onSuccess: (newIng) => {
+            if (initialStock > 0) {
+              adjustMut.mutate(
+                { ingredientId: newIng.ingredient_id, quantity: initialStock, reason: 'RECEIPT', notes: 'Stock inicial' },
+                {
+                  onSuccess: () => { toast.success('Insumo creado con stock inicial'); setPanel(null); },
+                  onError:   () => { toast.success('Insumo creado (ajusta stock desde editar)'); setPanel(null); },
+                }
+              );
+            } else {
+              toast.success('Insumo creado');
+              setPanel(null);
+            }
+          },
           onError: (err: any) => toast.error(err.response?.data?.detail || 'Error creando insumo'),
         }
       );
+
     } else if (panel?.type === 'edit') {
+      const adjustQty    = Number(fd.get('adjust_quantity') || 0);
+      const adjustReason = fd.get('adjust_reason') as string;
+      const adjustNotes  = (fd.get('adjust_notes') as string) || undefined;
+
       updateMut.mutate(
         {
           id: panel.ingredient.ingredient_id,
           data: {
-            name: fd.get('name') as string,
-            unit: fd.get('unit') as string,
-            description: (fd.get('description') as string) || undefined,
-            min_stock: Number(fd.get('min_stock')),
+            name:      fd.get('name') as string,
+            unit:      fd.get('unit') as string,
+            min_stock: Number(fd.get('min_stock') || 0),
           },
         },
         {
-          onSuccess: () => { toast.success('Insumo actualizado'); setPanel(null); },
+          onSuccess: () => {
+            if (adjustQty !== 0) {
+              adjustMut.mutate(
+                { ingredientId: panel.ingredient.ingredient_id, quantity: adjustQty, reason: adjustReason, notes: adjustNotes },
+                {
+                  onSuccess: (res) => { toast.success(`Guardado · Stock: ${res.new_stock} ${res.unit}`); setPanel(null); },
+                  onError:   (err: any) => toast.error(err.response?.data?.detail || 'Error ajustando stock'),
+                }
+              );
+            } else {
+              toast.success('Insumo actualizado');
+              setPanel(null);
+            }
+          },
           onError: (err: any) => toast.error(err.response?.data?.detail || 'Error actualizando insumo'),
-        }
-      );
-    } else if (panel?.type === 'adjust') {
-      const qty = Number(fd.get('quantity'));
-      adjustMut.mutate(
-        {
-          ingredientId: panel.ingredient.ingredient_id,
-          quantity: qty,
-          reason: fd.get('reason') as string,
-          notes: (fd.get('notes') as string) || undefined,
-        },
-        {
-          onSuccess: (res) => {
-            toast.success(`Stock actualizado: ${res.new_stock} ${res.unit}`);
-            setPanel(null);
-          },
-          onError: (err: any) => toast.error(err.response?.data?.detail || 'Error ajustando stock'),
         }
       );
     }
@@ -160,21 +169,15 @@ export default function IngredientsPage() {
                     )}
                   </td>
                   <td className="p-3">
-                    <div className="flex gap-2 justify-end">
+                    <div className="flex justify-end">
                       <button
                         onClick={() => setPanel({ type: 'edit', ingredient: ing })}
-                        className="p-2 rounded-lg hover:bg-white/40 text-text-secondary"
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-white/40 text-text-secondary text-xs font-medium transition-colors"
                         aria-label="Editar"
                       >
-                        <Pencil size={16} />
+                        <Pencil size={14} />
+                        Editar
                       </button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => setPanel({ type: 'adjust', ingredient: ing })}
-                      >
-                        Ajustar
-                      </Button>
                     </div>
                   </td>
                 </tr>
@@ -193,12 +196,10 @@ export default function IngredientsPage() {
 
       {/* Side panel */}
       {panel && (
-        <div className="fixed inset-y-0 right-0 w-full sm:w-96 z-50 glass !rounded-none !rounded-l-3xl p-6 overflow-y-auto shadow-2xl">
+        <div className="fixed inset-y-0 right-0 w-full sm:w-[420px] z-50 glass !rounded-none !rounded-l-3xl p-6 overflow-y-auto shadow-2xl">
           <div className="flex items-center justify-between mb-6">
             <h2 className="font-display font-bold text-lg text-text-primary">
-              {panel.type === 'new' && 'Nuevo insumo'}
-              {panel.type === 'edit' && 'Editar insumo'}
-              {panel.type === 'adjust' && 'Ajustar stock'}
+              {panel.type === 'new' ? 'Nuevo insumo' : 'Editar insumo'}
             </h2>
             <button
               onClick={() => setPanel(null)}
@@ -210,89 +211,86 @@ export default function IngredientsPage() {
           </div>
 
           <form onSubmit={handleSave} className="space-y-4">
-            {(panel.type === 'new' || panel.type === 'edit') && (
+            {/* Common fields */}
+            <FormField
+              label="Nombre*"
+              fieldId="name"
+              name="name"
+              required
+              defaultValue={panel.type === 'edit' ? panel.ingredient.name : ''}
+            />
+            <div>
+              <label className="block text-sm font-medium text-text-primary mb-1">Unidad</label>
+              <select
+                name="unit"
+                required
+                defaultValue={panel.type === 'edit' ? panel.ingredient.unit : 'g'}
+                className="w-full px-4 py-2.5 rounded-xl text-sm bg-white/50 backdrop-blur-sm border border-white/40 focus:outline-none focus:ring-2 focus:ring-blush/50"
+              >
+                {UNITS.map((u) => <option key={u} value={u}>{u}</option>)}
+              </select>
+            </div>
+            <FormField
+              label="Stock mínimo*"
+              fieldId="min_stock"
+              name="min_stock"
+              type="number"
+              required
+              defaultValue={panel.type === 'edit' ? String(panel.ingredient.min_stock) : '0'}
+            />
+
+            {/* New: initial stock */}
+            {panel.type === 'new' && (
+              <FormField
+                label="Stock actual inicial"
+                fieldId="initial_stock"
+                name="initial_stock"
+                type="number"
+                defaultValue="0"
+              />
+            )}
+
+            {/* Edit: stock adjustment section */}
+            {panel.type === 'edit' && (
               <>
-                <FormField
-                  label="Nombre"
-                  fieldId="name"
-                  name="name"
-                  required
-                  defaultValue={panel.type === 'edit' ? panel.ingredient.name : ''}
-                />
-                <div>
-                  <label className="block text-sm font-medium text-text-primary mb-1">
-                    Unidad
-                  </label>
-                  <select
-                    name="unit"
-                    required
-                    defaultValue={panel.type === 'edit' ? panel.ingredient.unit : 'g'}
-                    className="w-full px-4 py-2.5 rounded-xl text-sm bg-white/50 backdrop-blur-sm border border-white/40 focus:outline-none focus:ring-2 focus:ring-blush/50"
-                  >
-                    {UNITS.map((u) => (
-                      <option key={u} value={u}>{u}</option>
-                    ))}
-                  </select>
+                <div className="border-t border-white/20 pt-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="text-sm font-bold text-text-primary">Ajuste de stock</p>
+                    <span className="text-xs text-text-secondary bg-white/40 px-2 py-0.5 rounded-full">
+                      Actual: <strong>{panel.ingredient.current_stock} {panel.ingredient.unit}</strong>
+                    </span>
+                  </div>
+                  <FormField
+                    label={`Cantidad a ajustar (${panel.ingredient.unit}) — positivo entrada · negativo salida · 0 sin cambio`}
+                    fieldId="adjust_quantity"
+                    name="adjust_quantity"
+                    type="number"
+                    step="0.1"
+                    defaultValue="0"
+                  />
+                  <div className="mt-3">
+                    <label className="block text-sm font-medium text-text-primary mb-1">Razón del ajuste</label>
+                    <select
+                      name="adjust_reason"
+                      className="w-full px-4 py-2.5 rounded-xl text-sm bg-white/50 backdrop-blur-sm border border-white/40 focus:outline-none focus:ring-2 focus:ring-blush/50"
+                    >
+                      {ADJUST_REASONS.map((r) => (
+                        <option key={r.value} value={r.value}>{r.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="mt-3">
+                    <FormField
+                      label="Notas (opcional)"
+                      fieldId="adjust_notes"
+                      name="adjust_notes"
+                    />
+                  </div>
                 </div>
-                <FormField
-                  label="Descripción (opcional)"
-                  fieldId="description"
-                  name="description"
-                  defaultValue={panel.type === 'edit' ? (panel.ingredient.description ?? '') : ''}
-                />
-                <FormField
-                  label="Stock mínimo"
-                  fieldId="min_stock"
-                  name="min_stock"
-                  type="number"
-                  required
-                  defaultValue={panel.type === 'edit' ? String(panel.ingredient.min_stock) : '0'}
-                />
               </>
             )}
 
-            {panel.type === 'adjust' && (
-              <>
-                <div className="bg-white/40 p-4 rounded-xl">
-                  <p className="text-sm text-text-secondary">Insumo</p>
-                  <p className="font-bold text-text-primary">{panel.ingredient.name}</p>
-                  <p className="text-sm mt-1">
-                    Stock actual:{' '}
-                    <strong>
-                      {panel.ingredient.current_stock} {panel.ingredient.unit}
-                    </strong>
-                  </p>
-                </div>
-                <FormField
-                  label={`Cantidad (${panel.ingredient.unit}) — positivo = entrada, negativo = salida`}
-                  fieldId="quantity"
-                  name="quantity"
-                  type="number"
-                  step="0.1"
-                  required
-                />
-                <div>
-                  <label className="block text-sm font-medium text-text-primary mb-1">
-                    Razón
-                  </label>
-                  <select
-                    name="reason"
-                    className="w-full px-4 py-2.5 rounded-xl text-sm bg-white/50 backdrop-blur-sm border border-white/40 focus:outline-none focus:ring-2 focus:ring-blush/50"
-                  >
-                    {ADJUST_REASONS.map((r) => (
-                      <option key={r.value} value={r.value}>{r.label}</option>
-                    ))}
-                  </select>
-                </div>
-                <FormField
-                  label="Notas (opcional)"
-                  fieldId="notes"
-                  name="notes"
-                />
-              </>
-            )}
-
-            <Button type="submit" className="w-full mt-4" loading={isPending}>
+            <Button type="submit" className="w-full mt-2" loading={isPending}>
               Guardar
             </Button>
           </form>
