@@ -1,10 +1,11 @@
-type OrderStatus = 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
+type OrderStatus = 'PENDING' | 'PREPARING' | 'READY' | 'DELIVERED' | 'CANCELLED';
 
 const statusConfig: Record<OrderStatus, { label: string; classes: string }> = {
-  PENDING:     { label: 'En espera',  classes: 'bg-amber-50 text-amber-600 border-amber-200' },
-  IN_PROGRESS: { label: 'En proceso', classes: 'bg-blue-50 text-blue-600 border-blue-200' },
-  COMPLETED:   { label: 'Terminado',  classes: 'bg-emerald-50 text-emerald-600 border-emerald-200' },
-  CANCELLED:   { label: 'Cancelado',  classes: 'bg-red-50 text-red-500 border-red-200' },
+  PENDING:     { label: 'En espera',    classes: 'bg-lavender/50 text-purple-700 border-lavender/30' },
+  PREPARING:   { label: 'Preparando',  classes: 'bg-peach/50 text-orange-700 border-peach/30' },
+  READY:       { label: 'Listo',       classes: 'bg-sage/50 text-green-700 border-sage/30' },
+  DELIVERED:   { label: 'Entregado',   classes: 'bg-cream/80 text-stone-600 border-cream/60' },
+  CANCELLED:   { label: 'Cancelado',   classes: 'bg-red-50 text-red-500 border-red-200' },
 };
 
 interface OrderStatusBadgeProps {
