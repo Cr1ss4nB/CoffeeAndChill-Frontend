@@ -1,4 +1,5 @@
-import { defineConfig } from 'vite'
+/// <reference types="vitest" />
+import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
@@ -9,8 +10,6 @@ export default defineConfig({
       '@': '/src',
     },
   },
-  // Pre-bundle icon/animation libraries so dev HMR doesn't re-resolve 1500+ modules
-  // See: bundle-barrel-imports rule — lucide-react has ~1,583 re-exports
   optimizeDeps: {
     include: [
       'lucide-react',
@@ -18,5 +17,13 @@ export default defineConfig({
       '@dnd-kit/core',
       '@dnd-kit/sortable',
     ],
+  },
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'lcov'],
+    },
   },
 })
