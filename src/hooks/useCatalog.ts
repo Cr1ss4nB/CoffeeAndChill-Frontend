@@ -12,7 +12,7 @@ import {
 export interface Category {
   category_id: number;
   category_name: string;
-  type: 'PRODUCT' | 'WORKSHOP';
+  type: 'PRODUCT' | 'WORKSHOP' | 'INGREDIENT';
   description?: string;
   is_active: boolean;
 }

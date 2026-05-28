@@ -38,14 +38,8 @@ export default function IngredientsPage() {
   const updateMut = useUpdateIngredient();
   const adjustMut = useAdjustIngredientStock();
 
-  const [categories, setCategories] = useState<Category[]>([]);
   const [showCategoryManager, setShowCategoryManager] = useState(false);
-
-  useEffect(() => {
-    getCategories().then((data) => {
-      setCategories(data.filter((c) => c.type === 'INGREDIENT'));
-    });
-  }, [showCategoryManager]);
+  // Categories are managed by CategoryManager modal; no local usage here
 
   const filtered = (ingredients ?? []).filter((i) =>
     i.name.toLowerCase().includes(search.toLowerCase())

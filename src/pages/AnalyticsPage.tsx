@@ -20,8 +20,8 @@ export default function AnalyticsPage() {
   const { data: ordersData } = useOrdersBoard();
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // Mock Power BI URL
-  const PBI_URL = "https://app.powerbi.com/view?r=eyJrIjoiYTMxYzYwMTYtMmZlYS00NmUzLTk4MmEtYjM0YzYwNmZlZDE0IiwidCI6IjY3ZGU0Y2FmLWRhNGYtNDFiOC1hYjE2LTljMmYyZGVhYmI2MCIsImMiOjR9";
+  // Power BI embed URL comes from environment variable `VITE_PBI_URL`
+  const PBI_URL = (import.meta.env.VITE_PBI_URL as string) || '';
 
   const handleRefresh = () => {
     setIsRefreshing(true);
