@@ -11,6 +11,7 @@ node_modules
 dist
 dist-ssr
 *.local
+coverage
 .env
 .env.example
 
@@ -26,3 +27,6 @@ dist-ssr
 *.sw?
 
 CLAUDE.md
+.agents
+skills-lock.json
+.claude

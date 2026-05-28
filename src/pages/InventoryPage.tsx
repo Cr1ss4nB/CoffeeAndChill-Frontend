@@ -6,7 +6,7 @@ import { Button } from '@/components/atoms/Button/Button';
 import { FormField } from '@/components/molecules/FormField/FormField';
 import { Spinner } from '@/components/atoms/Spinner/Spinner';
 import { SearchBar } from '@/components/molecules/SearchBar/SearchBar';
-import api from '@/api/api.client';
+import api, { buildMediaUrl } from '@/api/api.client';
 import toast from 'react-hot-toast';
 import type { Product, Category } from '@/hooks/useCatalog';
 import { useIngredients, useProductConsumption, useUpsertProductConsumption } from '@/hooks/useIngredients';
@@ -171,7 +171,7 @@ function ConsumptionPanel({ product, onClose }: { product: Product; onClose: () 
                     type="number"
                     step="0.1"
                     min="0.1"
-                    value={row.quantity_used}
+                    value={row.quantity_used || ''}
                     onChange={(e) => updateRow(i, 'quantity_used', Number(e.target.value))}
                     className="w-full px-3 py-2 rounded-xl text-sm bg-white/50 border border-white/40 focus:outline-none focus:ring-2 focus:ring-blush/50"
                   />
@@ -228,7 +228,7 @@ function ProductPanel({
   const [recipeRows, setRecipeRows] = useState<ConsumptionRow[]>([]);
   const [recipeInit, setRecipeInit] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string>(editProduct?.image_url ?? '');
+  const [imagePreview, setImagePreview] = useState<string>(buildMediaUrl(editProduct?.image_url) ?? '');
   const [saving, setSaving] = useState(false);
 
   const { data: ingredients } = useIngredients();
@@ -462,7 +462,7 @@ function ProductPanel({
                       type="number"
                       step="0.1"
                       min="0.1"
-                      value={row.quantity_used}
+                      value={row.quantity_used || ''}
                       onChange={(e) => updateRow(i, 'quantity_used', Number(e.target.value))}
                       className="w-full px-3 py-2 rounded-xl text-sm bg-white/50 border border-white/40 focus:outline-none focus:ring-2 focus:ring-blush/50"
                     />
@@ -683,6 +683,7 @@ export default function InventoryPage() {
                 <th className="p-4 font-bold text-text-primary w-12">#</th>
                 <th className="p-4 font-bold text-text-primary w-14">Imagen</th>
                 <th className="p-4 font-bold text-text-primary">Nombre</th>
+                <th className="p-4 font-bold text-text-primary">Categoría</th>
                 <th className="p-4 font-bold text-text-primary">Precio</th>
                 <th className="p-4 font-bold text-text-primary">Stock</th>
                 <th className="p-4 font-bold text-text-primary">Estado</th>
@@ -702,8 +703,8 @@ export default function InventoryPage() {
                     <td className="p-4 text-text-secondary align-middle">#{p.product_id}</td>
                     <td className="p-4 align-middle">
                       <div className="w-10 h-10 rounded-lg overflow-hidden bg-white/40 border border-white/20">
-                        {p.image_url ? (
-                          <img src={p.image_url} alt={p.name} className="w-full h-full object-cover" />
+                        {buildMediaUrl(p.image_url) ? (
+                          <img src={buildMediaUrl(p.image_url)!} alt={p.name} className="w-full h-full object-cover" />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center text-text-secondary/50 text-xs font-bold">
                             {p.name.charAt(0)}
@@ -716,6 +717,9 @@ export default function InventoryPage() {
                       {isRecipe && (
                         <span className="text-[10px] text-blush font-semibold">Por receta</span>
                       )}
+                    </td>
+                    <td className="p-4 text-text-secondary text-xs align-middle">
+                      {categories?.find((c) => c.category_id === p.category_id)?.category_name || '—'}
                     </td>
                     <td className="p-4 text-text-secondary align-middle">${p.price}</td>
                     <td className="p-4 align-middle">
@@ -779,7 +783,7 @@ export default function InventoryPage() {
               })}
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="p-8 text-center text-text-secondary">
+                  <td colSpan={8} className="p-8 text-center text-text-secondary">
                     {activeTab === 'disabled'
                       ? 'No hay productos deshabilitados'
                       : 'No se encontraron productos'}

@@ -1,4 +1,3 @@
-/// <reference types="vitest" />
 import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
@@ -19,11 +18,27 @@ export default defineConfig({
     ],
   },
   test: {
+    environment: 'happy-dom',
     globals: true,
-    environment: 'jsdom',
+    setupFiles: ['./src/test/setup.ts'],
+    pool: 'forks',
+    maxWorkers: 3,
     coverage: {
       provider: 'v8',
-      reporter: ['text', 'lcov'],
+      reporter: ['text', 'html', 'lcov'],
+      exclude: [
+        'src/main.tsx',
+        'src/**/*.types.ts',
+        'src/types/**',
+        'src/styles/**',
+        'src/test/**',
+      ],
+      thresholds: {
+        branches: 70,
+        functions: 75,
+        lines: 75,
+        statements: 75,
+      },
     },
   },
 })
