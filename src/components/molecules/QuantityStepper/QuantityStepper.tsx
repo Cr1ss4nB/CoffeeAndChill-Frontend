@@ -1,4 +1,5 @@
 import { Minus, Plus } from 'lucide-react';
+import { Button } from '@/components/atoms/Button/Button';
 
 interface QuantityStepperProps {
   value: number;
@@ -10,25 +11,27 @@ interface QuantityStepperProps {
 export function QuantityStepper({ value, onChange, min = 1, max = 99 }: QuantityStepperProps) {
   return (
     <div className="flex items-center gap-2">
-      <button
+      <Button
+        variant="ghost"
+        size="icon"
         onClick={() => onChange(Math.max(min, value - 1))}
         disabled={value <= min}
-        className="w-7 h-7 rounded-full flex items-center justify-center border border-white/40 text-text-secondary hover:bg-accent-primary hover:text-white hover:border-accent-primary transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
         aria-label="Restar"
-      >
-        <Minus size={13} />
-      </button>
+        icon={<Minus size={13} />}
+        className="!w-7 !h-7 !rounded-full !p-0 hover:bg-accent-primary hover:text-white hover:border-accent-primary"
+      />
       <span className="w-5 text-center text-sm font-semibold text-text-primary tabular-nums">
         {value}
       </span>
-      <button
+      <Button
+        variant="ghost"
+        size="icon"
         onClick={() => onChange(Math.min(max, value + 1))}
         disabled={value >= max}
-        className="w-7 h-7 rounded-full flex items-center justify-center border border-white/40 text-text-secondary hover:bg-accent-primary hover:text-white hover:border-accent-primary transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
         aria-label="Sumar"
-      >
-        <Plus size={13} />
-      </button>
+        icon={<Plus size={13} />}
+        className="!w-7 !h-7 !rounded-full !p-0 hover:bg-accent-primary hover:text-white hover:border-accent-primary"
+      />
     </div>
   );
 }

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Plus, Pencil, X, ToggleLeft, ToggleRight } from 'lucide-react';
 import { DashboardTemplate } from '@/components/templates/DashboardTemplate/DashboardTemplate';
 import { Button } from '@/components/atoms/Button/Button';
+import { Select } from '@/components/atoms/Select/Select';
 import { FormField } from '@/components/molecules/FormField/FormField';
 import { SearchBar } from '@/components/molecules/SearchBar/SearchBar';
 import { Spinner } from '@/components/atoms/Spinner/Spinner';
@@ -66,25 +67,15 @@ function ConfirmStatusDialog({
           </div>
 
           <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={onCancel}
-              className="flex-1 px-4 py-2.5 rounded-xl text-sm font-medium text-text-secondary bg-white/40 hover:bg-white/60 border border-white/30 transition-colors"
-            >
-              Cancelar
-            </button>
-            <button
-              type="button"
+            <Button variant="ghost" onClick={onCancel} className="flex-1">Cancelar</Button>
+            <Button
+              variant={activating ? 'ghost' : 'danger'}
               onClick={onConfirm}
-              disabled={loading}
-              className={`flex-1 px-4 py-2.5 rounded-xl text-sm font-bold transition-colors disabled:opacity-60 ${
-                activating
-                  ? 'bg-sage/60 hover:bg-sage/80 text-green-800'
-                  : 'bg-red-100/60 hover:bg-red-200/70 text-red-700'
-              }`}
+              loading={loading}
+              className={`flex-1 ${activating ? 'bg-sage/60 hover:bg-sage/80 text-green-800' : ''}`}
             >
-              {loading ? 'Guardando…' : activating ? 'Activar' : 'Desactivar'}
-            </button>
+              {activating ? 'Activar' : 'Desactivar'}
+            </Button>
           </div>
         </div>
       </div>
@@ -182,33 +173,27 @@ export default function CategoriesPage() {
 
       {/* Tabs de categorías + Deshabilitados */}
       <div className="flex items-center gap-2 mb-4 overflow-x-auto pb-1 scrollbar-hide">
-        <button
+        <Button
+          variant="ghost" size="sm"
           onClick={() => setActiveTab('all')}
-          className={`shrink-0 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
-            activeTab === 'all'
-              ? 'bg-white/60 text-text-primary shadow-sm'
-              : 'text-text-secondary hover:bg-white/30'
-          }`}
+          className={`shrink-0 ${activeTab === 'all' ? 'bg-white/60 shadow-sm' : 'border-transparent text-text-secondary hover:bg-white/30'}`}
         >
           Todos
-        </button>
+        </Button>
         <div className="w-px h-5 bg-white/30 shrink-0 mx-1" />
-        <button
+        <Button
+          variant="ghost" size="sm"
           onClick={() => setActiveTab('disabled')}
-          className={`shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
-            activeTab === 'disabled'
-              ? 'bg-red-100/60 text-red-700 shadow-sm'
-              : 'text-text-secondary hover:bg-white/30'
-          }`}
+          icon={<ToggleLeft size={14} />}
+          className={`shrink-0 ${activeTab === 'disabled' ? 'bg-red-100/60 text-red-700 border-red-200/40 shadow-sm' : 'border-transparent text-text-secondary hover:bg-white/30'}`}
         >
-          <ToggleLeft size={14} />
           Deshabilitados
           {inactiveCategories.length > 0 && (
             <span className="ml-0.5 bg-red-200/70 text-red-700 text-[10px] font-bold px-1.5 py-0.5 rounded-full">
               {inactiveCategories.length}
             </span>
           )}
-        </button>
+        </Button>
       </div>
 
       {/* Search + New */}
@@ -281,26 +266,14 @@ export default function CategoriesPage() {
                   </td>
                   <td className="p-4 align-middle">
                     <div className="flex gap-1 justify-end">
-                      <button
-                        onClick={() => setPanel(c)}
-                        className="p-2 rounded-lg hover:bg-white/40 text-text-secondary"
-                        aria-label="Editar"
-                        title="Editar categoría"
-                      >
-                        <Pencil size={18} />
-                      </button>
-                      <button
+                      <Button variant="ghost" size="icon" onClick={() => setPanel(c)} aria-label="Editar" title="Editar categoría" icon={<Pencil size={18} />} />
+                      <Button
+                        variant="ghost" size="icon"
                         onClick={() => handleToggleClick(c)}
-                        className="p-2 rounded-lg hover:bg-white/40 text-text-secondary"
                         aria-label="Cambiar estado"
                         title={c.is_active ? 'Desactivar' : 'Activar'}
-                      >
-                        {c.is_active ? (
-                          <ToggleRight size={18} className="text-green-500" />
-                        ) : (
-                          <ToggleLeft size={18} />
-                        )}
-                      </button>
+                        icon={c.is_active ? <ToggleRight size={18} className="text-green-500" /> : <ToggleLeft size={18} />}
+                      />
                     </div>
                   </td>
                 </tr>
@@ -326,12 +299,7 @@ export default function CategoriesPage() {
             <h2 className="font-display font-bold text-lg">
               {panel === 'new' ? 'Nueva categoría' : 'Editar categoría'}
             </h2>
-            <button
-              onClick={() => setPanel(null)}
-              className="p-1 rounded-lg hover:bg-white/40 transition-colors"
-            >
-              <X size={20} />
-            </button>
+            <Button variant="ghost" size="icon" onClick={() => setPanel(null)} aria-label="Cerrar" icon={<X size={20} />} />
           </div>
 
           <form onSubmit={handleSave} className="space-y-4">
@@ -349,18 +317,10 @@ export default function CategoriesPage() {
               <label className="block text-sm font-medium text-text-primary mb-1">
                 Tipo
               </label>
-              <select
-                name="type"
-                required
-                defaultValue={
-                  panel !== 'new' && panel ? panel.type : 'PRODUCT'
-                }
-                disabled={panel !== 'new'}
-                className="w-full px-4 py-2.5 rounded-xl text-sm bg-white/50 border border-white/40 disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-blush/50"
-              >
+              <Select name="type" required defaultValue={panel !== 'new' && panel ? panel.type : 'PRODUCT'} disabled={panel !== 'new'}>
                 <option value="PRODUCT">Producto</option>
                 <option value="WORKSHOP">Taller / Evento</option>
-              </select>
+              </Select>
               {panel !== 'new' && (
                 <p className="text-xs text-text-secondary mt-1">
                   El tipo no se puede cambiar después de crear.
@@ -381,20 +341,10 @@ export default function CategoriesPage() {
               <label className="block text-sm font-medium text-text-primary mb-1">
                 Estado
               </label>
-              <select
-                name="is_active"
-                defaultValue={
-                  panel !== 'new' && panel
-                    ? panel.is_active
-                      ? 'true'
-                      : 'false'
-                    : 'true'
-                }
-                className="w-full px-4 py-2.5 rounded-xl text-sm bg-white/50 border border-white/40 focus:outline-none focus:ring-2 focus:ring-blush/50"
-              >
+              <Select name="is_active" defaultValue={panel !== 'new' && panel ? (panel.is_active ? 'true' : 'false') : 'true'}>
                 <option value="true">Activa</option>
                 <option value="false">Inactiva</option>
-              </select>
+              </Select>
             </div>
 
             <Button

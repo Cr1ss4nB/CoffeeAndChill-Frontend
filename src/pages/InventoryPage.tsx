@@ -3,10 +3,13 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, Pencil, X, ToggleLeft, ToggleRight, FlaskConical, Trash2 } from 'lucide-react';
 import { DashboardTemplate } from '@/components/templates/DashboardTemplate/DashboardTemplate';
 import { Button } from '@/components/atoms/Button/Button';
+import { Input } from '@/components/atoms/Input/Input';
+import { Select } from '@/components/atoms/Select/Select';
 import { FormField } from '@/components/molecules/FormField/FormField';
 import { Spinner } from '@/components/atoms/Spinner/Spinner';
 import { SearchBar } from '@/components/molecules/SearchBar/SearchBar';
-import api, { buildMediaUrl } from '@/api/api.client';
+import api from '@/api/api.client';
+import { buildMediaUrl } from '@/utils/media';
 import toast from 'react-hot-toast';
 import type { Product, Category } from '@/hooks/useCatalog';
 import { useIngredients, useProductConsumption, useUpsertProductConsumption } from '@/hooks/useIngredients';
@@ -64,25 +67,17 @@ function ConfirmStatusDialog({
           </div>
 
           <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={onCancel}
-              className="flex-1 px-4 py-2.5 rounded-xl text-sm font-medium text-text-secondary bg-white/40 hover:bg-white/60 border border-white/30 transition-colors"
-            >
+            <Button variant="ghost" onClick={onCancel} className="flex-1">
               Cancelar
-            </button>
-            <button
-              type="button"
+            </Button>
+            <Button
+              variant={activating ? 'ghost' : 'danger'}
               onClick={onConfirm}
-              disabled={loading}
-              className={`flex-1 px-4 py-2.5 rounded-xl text-sm font-bold transition-colors disabled:opacity-60 ${
-                activating
-                  ? 'bg-sage/60 hover:bg-sage/80 text-green-800'
-                  : 'bg-red-100/60 hover:bg-red-200/70 text-red-700'
-              }`}
+              loading={loading}
+              className={`flex-1 ${activating ? 'bg-sage/60 hover:bg-sage/80 text-green-800' : ''}`}
             >
-              {loading ? 'Guardando…' : activating ? 'Activar' : 'Desactivar'}
-            </button>
+              {activating ? 'Activar' : 'Desactivar'}
+            </Button>
           </div>
         </div>
       </div>
@@ -90,7 +85,6 @@ function ConfirmStatusDialog({
   );
 }
 
-// Panel de receta para productos existentes (accesible vía botón FlaskConical)
 function ConsumptionPanel({ product, onClose }: { product: Product; onClose: () => void }) {
   const { data: ingredients } = useIngredients();
   const { data: consumption, isLoading } = useProductConsumption(product.product_id);
@@ -132,9 +126,7 @@ function ConsumptionPanel({ product, onClose }: { product: Product; onClose: () 
           <h2 className="font-display font-bold text-lg text-text-primary">Receta / Insumos</h2>
           <p className="text-xs text-text-secondary">{product.name}</p>
         </div>
-        <button onClick={onClose} className="p-1 rounded-lg hover:bg-white/40" aria-label="Cerrar">
-          <X size={20} className="text-text-secondary" />
-        </button>
+        <Button variant="ghost" size="icon" onClick={onClose} aria-label="Cerrar" icon={<X size={20} />} />
       </div>
 
       <p className="text-xs text-text-secondary mb-4">
@@ -151,39 +143,37 @@ function ConsumptionPanel({ product, onClose }: { product: Product; onClose: () 
               <div key={i} className="flex gap-2 items-end">
                 <div className="flex-1">
                   <label className="block text-xs font-medium text-text-primary mb-1">Insumo</label>
-                  <select
+                  <Select
                     value={row.ingredient_id}
                     onChange={(e) => updateRow(i, 'ingredient_id', Number(e.target.value))}
-                    className="w-full px-3 py-2 rounded-xl text-sm bg-white/50 border border-white/40 focus:outline-none focus:ring-2 focus:ring-blush/50"
                   >
                     {ingredients?.map((ing) => (
                       <option key={ing.ingredient_id} value={ing.ingredient_id}>
                         {ing.name} ({ing.unit})
                       </option>
                     ))}
-                  </select>
+                  </Select>
                 </div>
                 <div className="w-28">
                   <label className="block text-xs font-medium text-text-primary mb-1">
                     Cant. ({ing?.unit ?? ''})
                   </label>
-                  <input
+                  <Input
                     type="number"
                     step="0.1"
                     min="0.1"
                     value={row.quantity_used || ''}
                     onChange={(e) => updateRow(i, 'quantity_used', Number(e.target.value))}
-                    className="w-full px-3 py-2 rounded-xl text-sm bg-white/50 border border-white/40 focus:outline-none focus:ring-2 focus:ring-blush/50"
                   />
                 </div>
-                <button
+                <Button
+                  variant="danger"
+                  size="icon"
                   onClick={() => removeRow(i)}
                   type="button"
-                  className="p-2 mb-0.5 rounded-lg hover:bg-red-100/50 text-red-400"
                   aria-label="Eliminar"
-                >
-                  <Trash2 size={16} />
-                </button>
+                  icon={<Trash2 size={16} />}
+                />
               </div>
             );
           })}
@@ -207,7 +197,6 @@ function ConsumptionPanel({ product, onClose }: { product: Product; onClose: () 
   );
 }
 
-// Panel de creación / edición de producto con toggle de receta
 function ProductPanel({
   modal,
   categories,
@@ -269,7 +258,6 @@ function ProductPanel({
     setSaving(true);
 
     try {
-      // Upload image first if a new file was selected
       let image_url = editProduct?.image_url;
       if (imageFile) {
         const imgFd = new FormData();
@@ -320,45 +308,23 @@ function ProductPanel({
         <h2 className="font-display font-bold text-lg text-text-primary">
           {isNew ? 'Nuevo producto' : 'Editar producto'}
         </h2>
-        <button onClick={onClose} className="p-1 rounded-lg hover:bg-white/40" type="button" aria-label="Cerrar">
-          <X size={20} />
-        </button>
+        <Button variant="ghost" size="icon" onClick={onClose} type="button" aria-label="Cerrar" icon={<X size={20} />} />
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        <FormField
-          label="Nombre comercial"
-          fieldId="name"
-          name="name"
-          required
-          defaultValue={editProduct?.name ?? ''}
-        />
-
-        <FormField
-          label="Descripción"
-          fieldId="description"
-          name="description"
-          defaultValue={editProduct?.description ?? ''}
-        />
+        <FormField label="Nombre comercial" fieldId="name" name="name" required defaultValue={editProduct?.name ?? ''} />
+        <FormField label="Descripción" fieldId="description" name="description" defaultValue={editProduct?.description ?? ''} />
 
         <div>
           <label className="block text-sm font-medium text-text-primary mb-1">Categoría</label>
-          <select
-            name="category_id"
-            required
-            defaultValue={editProduct?.category_id ?? ''}
-            className="w-full px-4 py-2.5 rounded-xl text-sm bg-white/50 backdrop-blur-sm border border-white/40 focus:outline-none focus:ring-2 focus:ring-blush/50"
-          >
+          <Select name="category_id" required defaultValue={editProduct?.category_id ?? ''}>
             <option value="">Seleccione...</option>
             {categories.map((c) => (
-              <option key={c.category_id} value={c.category_id}>
-                {c.category_name}
-              </option>
+              <option key={c.category_id} value={c.category_id}>{c.category_name}</option>
             ))}
-          </select>
+          </Select>
         </div>
 
-        {/* Foto del producto */}
         <div>
           <label className="block text-sm font-medium text-text-primary mb-1">Foto del producto</label>
           {imagePreview && (
@@ -374,61 +340,34 @@ function ProductPanel({
           />
         </div>
 
-        {/* Toggle receta */}
         <div>
           <p className="text-sm font-medium text-text-primary mb-2">¿Requiere receta?</p>
           <div className="grid grid-cols-2 gap-2">
-            <button
+            <Button
               type="button"
+              variant="ghost"
               onClick={() => setRequiresRecipe(false)}
-              className={`px-4 py-3 rounded-xl text-sm font-medium border transition-all ${
-                !requiresRecipe
-                  ? 'bg-white/60 border-white/60 text-text-primary shadow-sm'
-                  : 'bg-white/20 border-white/20 text-text-secondary hover:bg-white/30'
-              }`}
+              className={!requiresRecipe ? 'bg-white/60 border-white/60 shadow-sm' : 'bg-white/20 border-white/20 text-text-secondary'}
             >
               No — Stock manual
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              variant="ghost"
               onClick={() => setRequiresRecipe(true)}
-              className={`px-4 py-3 rounded-xl text-sm font-medium border transition-all ${
-                requiresRecipe
-                  ? 'bg-white/60 border-white/60 text-text-primary shadow-sm'
-                  : 'bg-white/20 border-white/20 text-text-secondary hover:bg-white/30'
-              }`}
+              className={requiresRecipe ? 'bg-white/60 border-white/60 shadow-sm' : 'bg-white/20 border-white/20 text-text-secondary'}
             >
               Sí — Por receta
-            </button>
+            </Button>
           </div>
         </div>
 
-        {/* Precio — siempre visible */}
-        <FormField
-          label="Precio"
-          fieldId="price"
-          name="price"
-          type="number"
-          step="0.01"
-          min="0.01"
-          required
-          defaultValue={editProduct ? String(editProduct.price) : ''}
-        />
+        <FormField label="Precio" fieldId="price" name="price" type="number" step="0.01" min="0.01" required defaultValue={editProduct ? String(editProduct.price) : ''} />
 
-        {/* Stock manual — solo si no requiere receta */}
         {!requiresRecipe && (
-          <FormField
-            label="Stock"
-            fieldId="stock_quantity"
-            name="stock_quantity"
-            type="number"
-            min="0"
-            required
-            defaultValue={editProduct ? String(editProduct.stock_quantity) : '0'}
-          />
+          <FormField label="Stock" fieldId="stock_quantity" name="stock_quantity" type="number" min="0" required defaultValue={editProduct ? String(editProduct.stock_quantity) : '0'} />
         )}
 
-        {/* Receta inline — solo si requiere receta */}
         {requiresRecipe && (
           <div className="bg-white/30 rounded-xl p-4 space-y-3 border border-white/30">
             <div className="flex items-center justify-between">
@@ -442,39 +381,37 @@ function ProductPanel({
                 <div key={i} className="flex gap-2 items-end">
                   <div className="flex-1">
                     <label className="block text-xs font-medium text-text-primary mb-1">Insumo</label>
-                    <select
+                    <Select
                       value={row.ingredient_id}
                       onChange={(e) => updateRow(i, 'ingredient_id', Number(e.target.value))}
-                      className="w-full px-3 py-2 rounded-xl text-sm bg-white/50 border border-white/40 focus:outline-none focus:ring-2 focus:ring-blush/50"
                     >
                       {ingredients?.map((ingr) => (
                         <option key={ingr.ingredient_id} value={ingr.ingredient_id}>
                           {ingr.name} ({ingr.unit})
                         </option>
                       ))}
-                    </select>
+                    </Select>
                   </div>
                   <div className="w-28">
                     <label className="block text-xs font-medium text-text-primary mb-1">
                       Cant. ({ing?.unit ?? ''})
                     </label>
-                    <input
+                    <Input
                       type="number"
                       step="0.1"
                       min="0.1"
                       value={row.quantity_used || ''}
                       onChange={(e) => updateRow(i, 'quantity_used', Number(e.target.value))}
-                      className="w-full px-3 py-2 rounded-xl text-sm bg-white/50 border border-white/40 focus:outline-none focus:ring-2 focus:ring-blush/50"
                     />
                   </div>
-                  <button
+                  <Button
+                    variant="danger"
+                    size="icon"
                     onClick={() => removeRow(i)}
                     type="button"
-                    className="p-2 mb-0.5 rounded-lg hover:bg-red-100/50 text-red-400"
                     aria-label="Eliminar"
-                  >
-                    <Trash2 size={16} />
-                  </button>
+                    icon={<Trash2 size={16} />}
+                  />
                 </div>
               );
             })}
@@ -485,31 +422,19 @@ function ProductPanel({
               </p>
             )}
 
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={addRow}
-              type="button"
-              icon={<Plus size={14} />}
-              className="w-full"
-            >
+            <Button variant="ghost" size="sm" onClick={addRow} type="button" icon={<Plus size={14} />} className="w-full">
               Agregar insumo
             </Button>
           </div>
         )}
 
-        {/* Estado — solo en edición */}
         {!isNew && (
           <div>
             <label className="block text-sm font-medium text-text-primary mb-1">Estado en carta</label>
-            <select
-              name="status"
-              defaultValue={editProduct?.status ?? 'ACTIVE'}
-              className="w-full px-4 py-2.5 rounded-xl text-sm bg-white/50 backdrop-blur-sm border border-white/40 focus:outline-none focus:ring-2 focus:ring-blush/50"
-            >
+            <Select name="status" defaultValue={editProduct?.status ?? 'ACTIVE'}>
               <option value="ACTIVE">Activo (visible)</option>
               <option value="INACTIVE">Inactivo (oculto)</option>
-            </select>
+            </Select>
           </div>
         )}
 
@@ -531,7 +456,6 @@ export default function InventoryPage() {
   const [search, setSearch] = useState('');
   const [activeTab, setActiveTab] = useState<ActiveTab>('all');
 
-  // active_only=false → incluye INACTIVE
   const { data: products, isLoading } = useQuery({
     queryKey: ['admin-products'],
     queryFn: async () => {
@@ -563,7 +487,6 @@ export default function InventoryPage() {
   const activeProducts = allProducts.filter((p) => p.status === 'ACTIVE');
   const inactiveProducts = allProducts.filter((p) => p.status === 'INACTIVE');
 
-  // Categorías que tienen al menos 1 producto ACTIVE
   const categoriesWithProducts = (categories ?? []).filter((c) =>
     activeProducts.some((p) => p.category_id === c.category_id),
   );
@@ -579,7 +502,6 @@ export default function InventoryPage() {
 
   return (
     <DashboardTemplate title="Gestión de Almacén">
-      {/* Summary cards */}
       {!isLoading && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
           <div className="glass p-4 !rounded-2xl border-l-4 border-sky">
@@ -608,51 +530,43 @@ export default function InventoryPage() {
         </div>
       )}
 
-      {/* Tabs de categorías + Deshabilitados */}
       <div className="flex items-center gap-2 mb-4 overflow-x-auto pb-1 scrollbar-hide">
-        <button
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={() => setActiveTab('all')}
-          className={`shrink-0 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
-            activeTab === 'all'
-              ? 'bg-white/60 text-text-primary shadow-sm'
-              : 'text-text-secondary hover:bg-white/30'
-          }`}
+          className={activeTab === 'all' ? 'bg-white/60 shadow-sm' : 'border-transparent text-text-secondary hover:bg-white/30'}
         >
           Todos
-        </button>
+        </Button>
         {categoriesWithProducts.map((c) => (
-          <button
+          <Button
             key={c.category_id}
+            variant="ghost"
+            size="sm"
             onClick={() => setActiveTab(c.category_id)}
-            className={`shrink-0 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
-              activeTab === c.category_id
-                ? 'bg-white/60 text-text-primary shadow-sm'
-                : 'text-text-secondary hover:bg-white/30'
-            }`}
+            className={`shrink-0 ${activeTab === c.category_id ? 'bg-white/60 shadow-sm' : 'border-transparent text-text-secondary hover:bg-white/30'}`}
           >
             {c.category_name}
-          </button>
+          </Button>
         ))}
         <div className="w-px h-5 bg-white/30 shrink-0 mx-1" />
-        <button
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={() => setActiveTab('disabled')}
-          className={`shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
-            activeTab === 'disabled'
-              ? 'bg-red-100/60 text-red-700 shadow-sm'
-              : 'text-text-secondary hover:bg-white/30'
-          }`}
+          icon={<ToggleLeft size={14} />}
+          className={`shrink-0 ${activeTab === 'disabled' ? 'bg-red-100/60 text-red-700 border-red-200/40 shadow-sm' : 'border-transparent text-text-secondary hover:bg-white/30'}`}
         >
-          <ToggleLeft size={14} />
           Deshabilitados
           {inactiveProducts.length > 0 && (
             <span className="ml-0.5 bg-red-200/70 text-red-700 text-[10px] font-bold px-1.5 py-0.5 rounded-full">
               {inactiveProducts.length}
             </span>
           )}
-        </button>
+        </Button>
       </div>
 
-      {/* Search + New */}
       <div className="flex flex-col sm:flex-row gap-3 mb-4">
         <div className="flex-1">
           <SearchBar value={search} onChange={setSearch} placeholder="Buscar producto…" />
@@ -662,11 +576,8 @@ export default function InventoryPage() {
         </Button>
       </div>
 
-      {/* Product table */}
       {isLoading ? (
-        <div className="flex justify-center py-12">
-          <Spinner size="lg" />
-        </div>
+        <div className="flex justify-center py-12"><Spinner size="lg" /></div>
       ) : (
         <div className={`glass rounded-xl overflow-hidden p-0 ${activeTab === 'disabled' ? 'opacity-90' : ''}`}>
           {activeTab === 'disabled' && (
@@ -693,13 +604,9 @@ export default function InventoryPage() {
             <tbody className="divide-y divide-white/10">
               {filtered.map((p) => {
                 const stock = p.available_to_sell ?? p.stock_quantity;
-                const isRecipe =
-                  p.fulfillment_type === 'INGREDIENTS' || p.fulfillment_type === 'BOTH';
+                const isRecipe = p.fulfillment_type === 'INGREDIENTS' || p.fulfillment_type === 'BOTH';
                 return (
-                  <tr
-                    key={p.product_id}
-                    className="hover:bg-white/20 transition-colors"
-                  >
+                  <tr key={p.product_id} className="hover:bg-white/20 transition-colors">
                     <td className="p-4 text-text-secondary align-middle">#{p.product_id}</td>
                     <td className="p-4 align-middle">
                       <div className="w-10 h-10 rounded-lg overflow-hidden bg-white/40 border border-white/20">
@@ -714,68 +621,52 @@ export default function InventoryPage() {
                     </td>
                     <td className="p-4 align-middle">
                       <p className="font-medium text-text-primary">{p.name}</p>
-                      {isRecipe && (
-                        <span className="text-[10px] text-blush font-semibold">Por receta</span>
-                      )}
+                      {isRecipe && <span className="text-[10px] text-blush font-semibold">Por receta</span>}
                     </td>
                     <td className="p-4 text-text-secondary text-xs align-middle">
                       {categories?.find((c) => c.category_id === p.category_id)?.category_name || '—'}
                     </td>
                     <td className="p-4 text-text-secondary align-middle">${p.price}</td>
                     <td className="p-4 align-middle">
-                      <span className={`font-medium ${stock < 5 ? 'text-red-500' : 'text-text-secondary'}`}>
-                        {stock}
-                      </span>
-                      {isRecipe && (
-                        <span className="block text-[10px] text-text-secondary">de insumos</span>
-                      )}
+                      <span className={`font-medium ${stock < 5 ? 'text-red-500' : 'text-text-secondary'}`}>{stock}</span>
+                      {isRecipe && <span className="block text-[10px] text-text-secondary">de insumos</span>}
                     </td>
                     <td className="p-4 align-middle">
-                      <span
-                        className={`px-2 py-1 rounded-full text-[10px] font-bold ${
-                          p.status === 'ACTIVE'
-                            ? 'bg-sage/40 text-green-700'
-                            : 'bg-red-100/50 text-red-600'
-                        }`}
-                      >
+                      <span className={`px-2 py-1 rounded-full text-[10px] font-bold ${
+                        p.status === 'ACTIVE' ? 'bg-sage/40 text-green-700' : 'bg-red-100/50 text-red-600'
+                      }`}>
                         {p.status === 'ACTIVE' ? 'Activo' : 'Inactivo'}
                       </span>
                     </td>
                     <td className="p-4 align-middle">
                       <div className="flex gap-1 justify-end">
-                        <button
+                        <Button
+                          variant="ghost"
+                          size="icon"
                           onClick={() => setConsumptionProduct(p)}
-                          className="p-2 rounded-lg hover:bg-white/40 text-text-secondary"
                           aria-label="Configurar receta"
                           title="Receta / Insumos"
-                        >
-                          <FlaskConical size={18} />
-                        </button>
-                        <button
+                          icon={<FlaskConical size={18} />}
+                        />
+                        <Button
+                          variant="ghost"
+                          size="icon"
                           onClick={() => setModal(p)}
-                          className="p-2 rounded-lg hover:bg-white/40 text-text-secondary"
                           aria-label="Editar"
                           title="Editar producto"
-                        >
-                          <Pencil size={18} />
-                        </button>
-                        <button
-                          onClick={() =>
-                            setPendingStatus({
-                              product: p,
-                              newStatus: p.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE',
-                            })
-                          }
-                          className="p-2 rounded-lg hover:bg-white/40 text-text-secondary"
+                          icon={<Pencil size={18} />}
+                        />
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setPendingStatus({ product: p, newStatus: p.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE' })}
                           aria-label="Cambiar estado"
                           title={p.status === 'ACTIVE' ? 'Desactivar' : 'Activar'}
-                        >
-                          {p.status === 'ACTIVE' ? (
-                            <ToggleRight size={18} className="text-green-500" />
-                          ) : (
-                            <ToggleLeft size={18} />
-                          )}
-                        </button>
+                          icon={p.status === 'ACTIVE'
+                            ? <ToggleRight size={18} className="text-green-500" />
+                            : <ToggleLeft size={18} />
+                          }
+                        />
                       </div>
                     </td>
                   </tr>
@@ -784,9 +675,7 @@ export default function InventoryPage() {
               {filtered.length === 0 && (
                 <tr>
                   <td colSpan={8} className="p-8 text-center text-text-secondary">
-                    {activeTab === 'disabled'
-                      ? 'No hay productos deshabilitados'
-                      : 'No se encontraron productos'}
+                    {activeTab === 'disabled' ? 'No hay productos deshabilitados' : 'No se encontraron productos'}
                   </td>
                 </tr>
               )}
@@ -795,24 +684,14 @@ export default function InventoryPage() {
         </div>
       )}
 
-      {/* Panel crear / editar */}
       {modal !== null && (
-        <ProductPanel
-          modal={modal}
-          categories={categories ?? []}
-          onClose={() => setModal(null)}
-        />
+        <ProductPanel modal={modal} categories={categories ?? []} onClose={() => setModal(null)} />
       )}
 
-      {/* Panel receta */}
       {consumptionProduct && (
-        <ConsumptionPanel
-          product={consumptionProduct}
-          onClose={() => setConsumptionProduct(null)}
-        />
+        <ConsumptionPanel product={consumptionProduct} onClose={() => setConsumptionProduct(null)} />
       )}
 
-      {/* Confirmar cambio de estado */}
       <ConfirmStatusDialog
         pending={pendingStatus}
         loading={statusMut.isPending}

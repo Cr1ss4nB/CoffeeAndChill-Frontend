@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Plus, X, AlertTriangle, Pencil } from 'lucide-react';
 import { DashboardTemplate } from '@/components/templates/DashboardTemplate/DashboardTemplate';
 import { Button } from '@/components/atoms/Button/Button';
+import { Select } from '@/components/atoms/Select/Select';
 import { FormField } from '@/components/molecules/FormField/FormField';
 import { Spinner } from '@/components/atoms/Spinner/Spinner';
 import { SearchBar } from '@/components/molecules/SearchBar/SearchBar';
@@ -170,14 +171,9 @@ export default function IngredientsPage() {
                   </td>
                   <td className="p-3">
                     <div className="flex justify-end">
-                      <button
-                        onClick={() => setPanel({ type: 'edit', ingredient: ing })}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-white/40 text-text-secondary text-xs font-medium transition-colors"
-                        aria-label="Editar"
-                      >
-                        <Pencil size={14} />
+                      <Button variant="ghost" size="sm" onClick={() => setPanel({ type: 'edit', ingredient: ing })} aria-label="Editar" icon={<Pencil size={14} />}>
                         Editar
-                      </button>
+                      </Button>
                     </div>
                   </td>
                 </tr>
@@ -201,13 +197,7 @@ export default function IngredientsPage() {
             <h2 className="font-display font-bold text-lg text-text-primary">
               {panel.type === 'new' ? 'Nuevo insumo' : 'Editar insumo'}
             </h2>
-            <button
-              onClick={() => setPanel(null)}
-              className="p-1 rounded-lg hover:bg-white/40"
-              aria-label="Cerrar"
-            >
-              <X size={20} className="text-text-secondary" />
-            </button>
+            <Button variant="ghost" size="icon" onClick={() => setPanel(null)} aria-label="Cerrar" icon={<X size={20} />} />
           </div>
 
           <form onSubmit={handleSave} className="space-y-4">
@@ -221,14 +211,9 @@ export default function IngredientsPage() {
             />
             <div>
               <label className="block text-sm font-medium text-text-primary mb-1">Unidad</label>
-              <select
-                name="unit"
-                required
-                defaultValue={panel.type === 'edit' ? panel.ingredient.unit : 'g'}
-                className="w-full px-4 py-2.5 rounded-xl text-sm bg-white/50 backdrop-blur-sm border border-white/40 focus:outline-none focus:ring-2 focus:ring-blush/50"
-              >
+              <Select name="unit" required defaultValue={panel.type === 'edit' ? panel.ingredient.unit : 'g'}>
                 {UNITS.map((u) => <option key={u} value={u}>{u}</option>)}
-              </select>
+              </Select>
             </div>
             <FormField
               label="Stock mínimo*"
@@ -270,14 +255,11 @@ export default function IngredientsPage() {
                   />
                   <div className="mt-3">
                     <label className="block text-sm font-medium text-text-primary mb-1">Razón del ajuste</label>
-                    <select
-                      name="adjust_reason"
-                      className="w-full px-4 py-2.5 rounded-xl text-sm bg-white/50 backdrop-blur-sm border border-white/40 focus:outline-none focus:ring-2 focus:ring-blush/50"
-                    >
+                    <Select name="adjust_reason">
                       {ADJUST_REASONS.map((r) => (
                         <option key={r.value} value={r.value}>{r.label}</option>
                       ))}
-                    </select>
+                    </Select>
                   </div>
                   <div className="mt-3">
                     <FormField
