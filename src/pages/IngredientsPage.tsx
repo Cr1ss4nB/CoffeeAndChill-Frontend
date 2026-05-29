@@ -13,11 +13,9 @@ import {
   useAdjustIngredientStock,
 } from '@/hooks/useIngredients';
 import type { Ingredient } from '@/services/ingredients.service';
-import { getCategories, type Category } from '@/services/categories.service';
 import { CategoryManager } from '@/components/organisms/CategoryManager';
 import { FolderTree } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { useEffect } from 'react';
 
 type PanelMode = { type: 'new' } | { type: 'edit'; ingredient: Ingredient } | null;
 

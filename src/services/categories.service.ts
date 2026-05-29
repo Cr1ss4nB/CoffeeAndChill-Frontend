@@ -6,7 +6,7 @@ export type { Category };
 
 export interface CategoryCreate {
   category_name: string;
-  type: 'PRODUCT' | 'WORKSHOP';
+  type: 'PRODUCT' | 'WORKSHOP' | 'INGREDIENT';
   description?: string;
 }
 
