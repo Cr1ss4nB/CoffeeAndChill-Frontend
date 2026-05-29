@@ -4,6 +4,7 @@ import { DashboardTemplate } from '@/components/templates/DashboardTemplate/Dash
 import { Button } from '@/components/atoms/Button/Button';
 import { Select } from '@/components/atoms/Select/Select';
 import { FormField } from '@/components/molecules/FormField/FormField';
+import { ConfirmStatusDialog } from '@/components/molecules/ConfirmStatusDialog/ConfirmStatusDialog';
 import { SearchBar } from '@/components/molecules/SearchBar/SearchBar';
 import { Spinner } from '@/components/atoms/Spinner/Spinner';
 import {
@@ -17,71 +18,6 @@ import {
 type ActiveTab = 'all' | 'disabled';
 type PanelMode = Category | 'new' | null;
 type PendingStatus = { category: Category; newActive: boolean } | null;
-
-function ConfirmStatusDialog({
-  pending,
-  onConfirm,
-  onCancel,
-  loading,
-}: {
-  pending: PendingStatus;
-  onConfirm: () => void;
-  onCancel: () => void;
-  loading: boolean;
-}) {
-  if (!pending) return null;
-  const activating = pending.newActive;
-
-  return (
-    <>
-      <div
-        className="fixed inset-0 z-[60] bg-black/30 backdrop-blur-[3px]"
-        onClick={onCancel}
-        aria-hidden="true"
-      />
-      <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 pointer-events-none">
-        <div className="glass rounded-3xl p-6 w-full max-w-sm shadow-2xl pointer-events-auto animate-in fade-in zoom-in-95 duration-200">
-          <div className="flex items-start gap-4 mb-5">
-            <div
-              className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 ${
-                activating ? 'bg-sage/30' : 'bg-red-100/60'
-              }`}
-            >
-              {activating ? (
-                <ToggleRight size={20} className="text-green-600" />
-              ) : (
-                <ToggleLeft size={20} className="text-red-500" />
-              )}
-            </div>
-            <div>
-              <h3 className="font-display font-bold text-text-primary text-base leading-snug">
-                {activating ? 'Activar categoría' : 'Desactivar categoría'}
-              </h3>
-              <p className="text-sm text-text-secondary mt-1">
-                <span className="font-medium text-text-primary">{pending.category.category_name}</span>{' '}
-                {activating
-                  ? 'volverá a aparecer en el menú y estará disponible.'
-                  : 'dejará de estar disponible en el menú público.'}
-              </p>
-            </div>
-          </div>
-
-          <div className="flex gap-2">
-            <Button variant="ghost" onClick={onCancel} className="flex-1">Cancelar</Button>
-            <Button
-              variant={activating ? 'ghost' : 'danger'}
-              onClick={onConfirm}
-              loading={loading}
-              className={`flex-1 ${activating ? 'bg-sage/60 hover:bg-sage/80 text-green-800' : ''}`}
-            >
-              {activating ? 'Activar' : 'Desactivar'}
-            </Button>
-          </div>
-        </div>
-      </div>
-    </>
-  );
-}
 
 export default function CategoriesPage() {
   const [panel, setPanel] = useState<PanelMode>(null);
@@ -141,6 +77,8 @@ export default function CategoriesPage() {
   function handleToggleClick(category: Category) {
     setPendingStatus({ category, newActive: !category.is_active });
   }
+
+  const editCategory = panel !== 'new' ? panel : null;
 
   return (
     <DashboardTemplate title="Gestión de Categorías">
@@ -308,20 +246,24 @@ export default function CategoriesPage() {
               fieldId="category_name"
               name="category_name"
               required
-              defaultValue={
-                panel !== 'new' && panel ? panel.category_name : ''
-              }
+              defaultValue={editCategory?.category_name ?? ''}
             />
 
             <div>
               <label className="block text-sm font-medium text-text-primary mb-1">
                 Tipo
               </label>
-              <Select name="type" required defaultValue={panel !== 'new' && panel ? panel.type : 'PRODUCT'} disabled={panel !== 'new'}>
+              <select
+                name="type"
+                required
+                defaultValue={editCategory?.type ?? 'PRODUCT'}
+                disabled={editCategory !== null}
+                className="w-full px-4 py-2.5 rounded-xl text-sm bg-white/50 border border-white/40 disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-blush/50"
+              >
                 <option value="PRODUCT">Producto</option>
                 <option value="WORKSHOP">Taller / Evento</option>
-              </Select>
-              {panel !== 'new' && (
+              </select>
+              {editCategory !== null && (
                 <p className="text-xs text-text-secondary mt-1">
                   El tipo no se puede cambiar después de crear.
                 </p>
@@ -332,16 +274,18 @@ export default function CategoriesPage() {
               label="Descripción"
               fieldId="description"
               name="description"
-              defaultValue={
-                panel !== 'new' && panel ? (panel.description || '') : ''
-              }
+              defaultValue={editCategory?.description ?? ''}
             />
 
             <div>
               <label className="block text-sm font-medium text-text-primary mb-1">
                 Estado
               </label>
-              <Select name="is_active" defaultValue={panel !== 'new' && panel ? (panel.is_active ? 'true' : 'false') : 'true'}>
+              <select
+                name="is_active"
+                defaultValue={editCategory ? (editCategory.is_active ? 'true' : 'false') : 'true'}
+                className="w-full px-4 py-2.5 rounded-xl text-sm bg-white/50 border border-white/40 focus:outline-none focus:ring-2 focus:ring-blush/50"
+              >
                 <option value="true">Activa</option>
                 <option value="false">Inactiva</option>
               </Select>
@@ -360,7 +304,10 @@ export default function CategoriesPage() {
 
       {/* Confirmar cambio de estado */}
       <ConfirmStatusDialog
-        pending={pendingStatus}
+        open={pendingStatus !== null}
+        itemName={pendingStatus?.category.category_name ?? ''}
+        itemLabel="categoría"
+        activating={pendingStatus?.newActive ?? false}
         loading={toggleMut.isPending}
         onCancel={() => setPendingStatus(null)}
         onConfirm={() => {

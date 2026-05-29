@@ -262,12 +262,18 @@ export default function TablesPage() {
               <Button variant="ghost" size="icon" onClick={() => setModal(null)} aria-label="Cerrar" icon={<X size={20} />} />
             </div>
             <form onSubmit={handleSave} className="space-y-4">
-              <FormField label="Número de mesa" fieldId="table_number" name="table_number" type="number" required defaultValue={modal !== 'new' ? String(modal.table_number) : ''} />
-              <FormField label="Capacidad (personas)" fieldId="capacity" name="capacity" type="number" required defaultValue={modal !== 'new' ? String(modal.capacity) : ''} />
+              <FormField label="Número de mesa" fieldId="table_number" name="table_number" type="number" required defaultValue={modal === 'new' ? '' : String(modal.table_number)} />
+              <FormField label="Capacidad (personas)" fieldId="capacity" name="capacity" type="number" required defaultValue={modal === 'new' ? '' : String(modal.capacity)} />
 
               <div>
                 <label className="block text-sm font-medium text-text-primary mb-1">Etiqueta / Sector</label>
-                <Input name="label" list="sectors-list" defaultValue={modal !== 'new' ? modal.label : ''} placeholder="Ej: Terraza, VIP..." />
+                <input
+                  name="label"
+                  list="sectors-list"
+                  defaultValue={modal === 'new' ? '' : modal.label}
+                  placeholder="Ej: Terraza, VIP..."
+                  className="w-full px-4 py-2.5 rounded-xl text-sm bg-white/50 backdrop-blur-sm border border-white/40 focus:outline-none focus:ring-2 focus:ring-blush/50"
+                />
                 <datalist id="sectors-list">
                   {sectors.filter(s => s !== 'TODOS').map(s => (
                     <option key={s} value={s} />
@@ -275,7 +281,7 @@ export default function TablesPage() {
                 </datalist>
               </div>
 
-              {modal !== 'new' && (
+              {modal === 'new' ? null : (
                 <div>
                   <label className="block text-sm font-medium text-text-primary mb-1">Estado</label>
                   <Select name="status" defaultValue={modal.status}>

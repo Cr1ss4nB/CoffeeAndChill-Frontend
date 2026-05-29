@@ -6,6 +6,7 @@ import { Button } from '@/components/atoms/Button/Button';
 import { Input } from '@/components/atoms/Input/Input';
 import { Select } from '@/components/atoms/Select/Select';
 import { FormField } from '@/components/molecules/FormField/FormField';
+import { ConfirmStatusDialog } from '@/components/molecules/ConfirmStatusDialog/ConfirmStatusDialog';
 import { Spinner } from '@/components/atoms/Spinner/Spinner';
 import { SearchBar } from '@/components/molecules/SearchBar/SearchBar';
 import api, { buildMediaUrl } from '@/api/api.client';
@@ -16,73 +17,6 @@ import { useIngredients, useProductConsumption, useUpsertProductConsumption } fr
 type ModalState = Product | 'new' | null;
 type ConsumptionRow = { ingredient_id: number; quantity_used: number };
 type PendingStatus = { product: Product; newStatus: 'ACTIVE' | 'INACTIVE' } | null;
-
-function ConfirmStatusDialog({
-  pending,
-  onConfirm,
-  onCancel,
-  loading,
-}: {
-  pending: PendingStatus;
-  onConfirm: () => void;
-  onCancel: () => void;
-  loading: boolean;
-}) {
-  if (!pending) return null;
-  const activating = pending.newStatus === 'ACTIVE';
-
-  return (
-    <>
-      <div
-        className="fixed inset-0 z-[60] bg-black/30 backdrop-blur-[3px]"
-        onClick={onCancel}
-        aria-hidden="true"
-      />
-      <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 pointer-events-none">
-        <div className="glass rounded-3xl p-6 w-full max-w-sm shadow-2xl pointer-events-auto animate-in fade-in zoom-in-95 duration-200">
-          <div className="flex items-start gap-4 mb-5">
-            <div
-              className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 ${
-                activating ? 'bg-sage/30' : 'bg-red-100/60'
-              }`}
-            >
-              {activating ? (
-                <ToggleRight size={20} className="text-green-600" />
-              ) : (
-                <ToggleLeft size={20} className="text-red-500" />
-              )}
-            </div>
-            <div>
-              <h3 className="font-display font-bold text-text-primary text-base leading-snug">
-                {activating ? 'Activar producto' : 'Desactivar producto'}
-              </h3>
-              <p className="text-sm text-text-secondary mt-1">
-                <span className="font-medium text-text-primary">{pending.product.name}</span>{' '}
-                {activating
-                  ? 'volverá a aparecer en el menú y podrá recibir pedidos.'
-                  : 'dejará de estar disponible en el menú y no podrá recibir pedidos.'}
-              </p>
-            </div>
-          </div>
-
-          <div className="flex gap-2">
-            <Button variant="ghost" onClick={onCancel} className="flex-1">
-              Cancelar
-            </Button>
-            <Button
-              variant={activating ? 'ghost' : 'danger'}
-              onClick={onConfirm}
-              loading={loading}
-              className={`flex-1 ${activating ? 'bg-sage/60 hover:bg-sage/80 text-green-800' : ''}`}
-            >
-              {activating ? 'Activar' : 'Desactivar'}
-            </Button>
-          </div>
-        </div>
-      </div>
-    </>
-  );
-}
 
 function ConsumptionPanel({ product, onClose }: { product: Product; onClose: () => void }) {
   const { data: ingredients } = useIngredients();
@@ -692,7 +626,10 @@ export default function InventoryPage() {
       )}
 
       <ConfirmStatusDialog
-        pending={pendingStatus}
+        open={pendingStatus !== null}
+        itemName={pendingStatus?.product.name ?? ''}
+        itemLabel="producto"
+        activating={pendingStatus?.newStatus === 'ACTIVE'}
         loading={statusMut.isPending}
         onCancel={() => setPendingStatus(null)}
         onConfirm={() => {
