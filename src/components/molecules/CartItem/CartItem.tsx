@@ -1,4 +1,5 @@
 import { Trash2 } from 'lucide-react';
+import { Button } from '@/components/atoms/Button/Button';
 import { QuantityStepper } from '@/components/molecules/QuantityStepper/QuantityStepper';
 import { useUIStore } from '@/store/ui.store';
 import type { CartItem as CartItemType } from '@/types';
@@ -42,13 +43,14 @@ export function CartItem({ item }: CartItemProps) {
         </div>
       </div>
 
-      <button
+      <Button
+        variant="ghost"
+        size="icon"
         onClick={() => removeFromCart(item.cartItemId)}
-        className="p-1.5 rounded-lg text-text-secondary/50 hover:text-red-400 hover:bg-red-50 transition-colors mt-0.5"
-        aria-label="Remove item"
-      >
-        <Trash2 size={15} />
-      </button>
+        aria-label="Eliminar producto"
+        icon={<Trash2 size={15} />}
+        className="mt-0.5 text-text-secondary/50 hover:text-red-400 hover:bg-red-50 border-0"
+      />
     </div>
   );
 }

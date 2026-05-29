@@ -15,6 +15,7 @@ const sizeClasses: Record<string, string> = {
   sm: 'px-3 py-1.5 text-sm rounded-xl',
   md: 'px-5 py-2.5 text-sm rounded-xl',
   lg: 'px-7 py-3 text-base rounded-2xl',
+  icon: 'p-2 rounded-lg',
 };
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(

@@ -309,25 +309,23 @@ function PublicCartDrawer({
   const [notes, setNotes] = useState('');
   const [step, setStep] = useState<CheckoutStep>('cart');
 
-  // reset step when drawer closes
-  useEffect(() => {
-    if (!isOpen) setStep('cart');
-  }, [isOpen]);
+  function close() {
+    setStep('cart');
+    onClose();
+  }
 
   function handleConfirm() {
     if (hasTable) {
-      // Mesa conocida (QR) → directo
       onPlaceOrder(notes, 'DINE_IN');
-      onClose();
+      close();
     } else {
-      // Sin mesa → mostrar selector de tipo
       setStep('order-type');
     }
   }
 
   function handleOrderTypeSelect(type: OrderType) {
     onPlaceOrder(notes, type);
-    onClose();
+    close();
   }
 
   const totalItems = cart.reduce((s, i) => s + i.quantity, 0);
@@ -389,7 +387,7 @@ function PublicCartDrawer({
             {/* Backdrop */}
             <div
               className="absolute inset-0 bg-black/30 backdrop-blur-sm"
-              onClick={onClose}
+              onClick={close}
             />
 
             <motion.div
@@ -437,14 +435,14 @@ function PublicCartDrawer({
                 <div className="flex items-center gap-1">
                   {step === 'cart' && (
                     <button
-                      onClick={() => { onClearCart(); onClose(); }}
+                      onClick={() => { onClearCart(); close(); }}
                       className="text-xs text-text-secondary/50 hover:text-text-secondary transition-colors px-2 py-1.5 rounded-lg hover:bg-white/30"
                     >
                       Vaciar
                     </button>
                   )}
                   <button
-                    onClick={onClose}
+                    onClick={close}
                     className="w-8 h-8 rounded-xl bg-white/40 flex items-center justify-center text-text-secondary hover:bg-white/60 transition-colors ml-1"
                   >
                     <X size={16} />
