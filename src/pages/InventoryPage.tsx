@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, Pencil, X, ToggleLeft, ToggleRight, FlaskConical, Trash2 } from 'lucide-react';
+import { useRecipeRows } from '@/hooks/useRecipeRows';
 import { DashboardTemplate } from '@/components/templates/DashboardTemplate/DashboardTemplate';
 import { Button } from '@/components/atoms/Button/Button';
 import { Input } from '@/components/atoms/Input/Input';
@@ -15,35 +16,15 @@ import type { Product, Category } from '@/hooks/useCatalog';
 import { useIngredients, useProductConsumption, useUpsertProductConsumption } from '@/hooks/useIngredients';
 
 type ModalState = Product | 'new' | null;
-type ConsumptionRow = { ingredient_id: number; quantity_used: number };
 type PendingStatus = { product: Product; newStatus: 'ACTIVE' | 'INACTIVE' } | null;
 
 function ConsumptionPanel({ product, onClose }: { product: Product; onClose: () => void }) {
   const { data: ingredients } = useIngredients();
   const { data: consumption, isLoading } = useProductConsumption(product.product_id);
   const upsertMut = useUpsertProductConsumption(product.product_id);
+  const { rows, init, addRow, removeRow, updateRow } = useRecipeRows(ingredients);
 
-  const [rows, setRows] = useState<ConsumptionRow[]>([]);
-  const [initialized, setInitialized] = useState(false);
-
-  if (!initialized && consumption) {
-    setRows(consumption.map((c) => ({ ingredient_id: c.ingredient_id, quantity_used: c.quantity_used })));
-    setInitialized(true);
-  }
-
-  function addRow() {
-    const firstUnused = ingredients?.find((i) => !rows.some((r) => r.ingredient_id === i.ingredient_id));
-    if (!firstUnused) return;
-    setRows((prev) => [...prev, { ingredient_id: firstUnused.ingredient_id, quantity_used: 1 }]);
-  }
-
-  function removeRow(index: number) {
-    setRows((prev) => prev.filter((_, i) => i !== index));
-  }
-
-  function updateRow(index: number, field: keyof ConsumptionRow, value: number) {
-    setRows((prev) => prev.map((r, i) => (i === index ? { ...r, [field]: value } : r)));
-  }
+  if (consumption) init(consumption.map((c) => ({ ingredient_id: c.ingredient_id, quantity_used: c.quantity_used })));
 
   function handleSave() {
     upsertMut.mutate(rows, {
@@ -147,8 +128,6 @@ function ProductPanel({
     !isNew &&
       (editProduct?.fulfillment_type === 'INGREDIENTS' || editProduct?.fulfillment_type === 'BOTH'),
   );
-  const [recipeRows, setRecipeRows] = useState<ConsumptionRow[]>([]);
-  const [recipeInit, setRecipeInit] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>(buildMediaUrl(editProduct?.image_url) ?? '');
   const [saving, setSaving] = useState(false);
@@ -156,27 +135,9 @@ function ProductPanel({
   const { data: ingredients } = useIngredients();
   const productId = editProduct?.product_id ?? 0;
   const { data: existingConsumption } = useProductConsumption(productId);
+  const { rows: recipeRows, init: initRecipe, addRow, removeRow, updateRow } = useRecipeRows(ingredients);
 
-  if (!recipeInit && existingConsumption && !isNew) {
-    setRecipeRows(
-      existingConsumption.map((c) => ({ ingredient_id: c.ingredient_id, quantity_used: c.quantity_used })),
-    );
-    setRecipeInit(true);
-  }
-
-  function addRow() {
-    const firstUnused = ingredients?.find((i) => !recipeRows.some((r) => r.ingredient_id === i.ingredient_id));
-    if (!firstUnused) return;
-    setRecipeRows((prev) => [...prev, { ingredient_id: firstUnused.ingredient_id, quantity_used: 1 }]);
-  }
-
-  function removeRow(idx: number) {
-    setRecipeRows((prev) => prev.filter((_, i) => i !== idx));
-  }
-
-  function updateRow(idx: number, field: keyof ConsumptionRow, val: number) {
-    setRecipeRows((prev) => prev.map((r, i) => (i === idx ? { ...r, [field]: val } : r)));
-  }
+  if (existingConsumption && !isNew) initRecipe(existingConsumption.map((c) => ({ ingredient_id: c.ingredient_id, quantity_used: c.quantity_used })));
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
