@@ -4,6 +4,8 @@ import { Plus, Pencil, X, DollarSign } from 'lucide-react';
 
 import { DashboardTemplate } from '@/components/templates/DashboardTemplate/DashboardTemplate';
 import { Button } from '@/components/atoms/Button/Button';
+import { Input } from '@/components/atoms/Input/Input';
+import { Select } from '@/components/atoms/Select/Select';
 import { FormField } from '@/components/molecules/FormField/FormField';
 import { SearchBar } from '@/components/molecules/SearchBar/SearchBar';
 import { Spinner } from '@/components/atoms/Spinner/Spinner';
@@ -170,17 +172,15 @@ export default function TablesPage() {
         {!isLoading && sectors.length > 1 && (
           <div className="flex flex-wrap gap-2">
             {sectors.map(sector => (
-              <button
+              <Button
                 key={sector}
+                variant="ghost"
+                size="sm"
                 onClick={() => setActiveSector(sector)}
-                className={`px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all ${
-                  activeSector === sector
-                  ? 'bg-text-primary text-white shadow-md'
-                  : 'bg-white/40 text-text-secondary hover:bg-white/60'
-                }`}
+                className={`uppercase tracking-wider text-xs ${activeSector === sector ? 'bg-text-primary text-white border-text-primary shadow-md' : 'bg-white/40 border-white/40 text-text-secondary hover:bg-white/60'}`}
               >
                 {sector}
-              </button>
+              </Button>
             ))}
           </div>
         )}
@@ -213,9 +213,7 @@ export default function TablesPage() {
                       <span className="text-[10px] bg-lavender/30 text-purple-700 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider w-fit">{table.label}</span>
                     )}
                   </div>
-                  <button onClick={() => setModal(table)} className="p-2 rounded-xl hover:bg-white/40 text-text-secondary" title="Editar">
-                    <Pencil size={18} />
-                  </button>
+                  <Button variant="ghost" size="icon" onClick={() => setModal(table)} title="Editar" aria-label="Editar mesa" icon={<Pencil size={18} />} />
                 </div>
 
                 <div className="flex items-center justify-between pt-2 border-t border-white/10">
@@ -232,13 +230,15 @@ export default function TablesPage() {
                 </div>
 
                 {isOccupied && (
-                  <button
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     onClick={() => { setCloseModal(table); setPaymentMethod('CASH'); setTipAmount('0'); }}
-                    className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-sage/20 hover:bg-sage/40 text-green-700 transition-all text-xs font-bold border border-sage/30"
+                    icon={<DollarSign size={14} />}
+                    className="w-full bg-sage/20 hover:bg-sage/40 text-green-700 border-sage/30"
                   >
-                    <DollarSign size={14} />
                     Cerrar mesa
-                  </button>
+                  </Button>
                 )}
 
                 <div className="bg-white/40 p-4 rounded-xl flex flex-col items-center gap-2">
@@ -259,18 +259,18 @@ export default function TablesPage() {
               <h2 className="font-display font-bold text-lg text-text-primary">
                 {modal === 'new' ? 'Nueva Mesa' : 'Editar Mesa'}
               </h2>
-              <button onClick={() => setModal(null)} className="p-1 rounded-lg hover:bg-white/40"><X size={20} /></button>
+              <Button variant="ghost" size="icon" onClick={() => setModal(null)} aria-label="Cerrar" icon={<X size={20} />} />
             </div>
             <form onSubmit={handleSave} className="space-y-4">
-              <FormField label="Número de mesa" fieldId="table_number" name="table_number" type="number" required defaultValue={modal !== 'new' ? String(modal.table_number) : ''} />
-              <FormField label="Capacidad (personas)" fieldId="capacity" name="capacity" type="number" required defaultValue={modal !== 'new' ? String(modal.capacity) : ''} />
+              <FormField label="Número de mesa" fieldId="table_number" name="table_number" type="number" required defaultValue={modal === 'new' ? '' : String(modal.table_number)} />
+              <FormField label="Capacidad (personas)" fieldId="capacity" name="capacity" type="number" required defaultValue={modal === 'new' ? '' : String(modal.capacity)} />
 
               <div>
                 <label className="block text-sm font-medium text-text-primary mb-1">Etiqueta / Sector</label>
                 <input
                   name="label"
                   list="sectors-list"
-                  defaultValue={modal !== 'new' ? modal.label : ''}
+                  defaultValue={modal === 'new' ? '' : modal.label}
                   placeholder="Ej: Terraza, VIP..."
                   className="w-full px-4 py-2.5 rounded-xl text-sm bg-white/50 backdrop-blur-sm border border-white/40 focus:outline-none focus:ring-2 focus:ring-blush/50"
                 />
@@ -281,15 +281,15 @@ export default function TablesPage() {
                 </datalist>
               </div>
 
-              {modal !== 'new' && (
+              {modal === 'new' ? null : (
                 <div>
                   <label className="block text-sm font-medium text-text-primary mb-1">Estado</label>
-                  <select name="status" defaultValue={modal.status} className="w-full px-4 py-2.5 rounded-xl text-sm bg-white/50 backdrop-blur-sm border border-white/40 focus:outline-none focus:ring-2 focus:ring-blush/50">
+                  <Select name="status" defaultValue={modal.status}>
                     <option value="FREE">Libre</option>
                     <option value="OCCUPIED">Ocupada</option>
                     <option value="RESERVED">Reservada</option>
                     <option value="MAINTENANCE">En mantenimiento</option>
-                  </select>
+                  </Select>
                 </div>
               )}
               <Button type="submit" className="w-full" loading={createMut.isPending || updateMut.isPending}>Guardar</Button>
@@ -308,25 +308,23 @@ export default function TablesPage() {
                 <h2 className="font-display font-bold text-lg text-text-primary">Cerrar Mesa {closeModal.table_number}</h2>
                 <p className="text-xs text-text-secondary mt-0.5">Registra el pago y libera la mesa</p>
               </div>
-              <button onClick={() => setCloseModal(null)} className="p-1 rounded-lg hover:bg-white/40"><X size={20} /></button>
+              <Button variant="ghost" size="icon" onClick={() => setCloseModal(null)} aria-label="Cerrar" icon={<X size={20} />} />
             </div>
             <form onSubmit={handleClose} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-text-primary mb-1">Método de pago</label>
                 <div className="grid grid-cols-2 gap-2">
                   {PAYMENT_METHODS.map(m => (
-                    <button
+                    <Button
                       key={m.value}
                       type="button"
+                      variant="ghost"
+                      size="sm"
                       onClick={() => setPaymentMethod(m.value)}
-                      className={`py-2 px-3 rounded-xl text-xs font-bold border transition-all ${
-                        paymentMethod === m.value
-                          ? 'bg-accent-primary text-white border-accent-primary shadow-md'
-                          : 'bg-white/50 text-text-secondary border-white/40 hover:bg-white/70'
-                      }`}
+                      className={`text-xs font-bold ${paymentMethod === m.value ? 'bg-accent-primary text-white border-accent-primary shadow-md' : 'bg-white/50 text-text-secondary border-white/40 hover:bg-white/70'}`}
                     >
                       {m.label}
-                    </button>
+                    </Button>
                   ))}
                 </div>
               </div>
@@ -335,15 +333,7 @@ export default function TablesPage() {
                 <label className="block text-sm font-medium text-text-primary mb-1">Propina (opcional)</label>
                 <div className="relative">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary text-sm">$</span>
-                  <input
-                    type="number"
-                    min="0"
-                    step="100"
-                    value={tipAmount}
-                    onChange={(e) => setTipAmount(e.target.value)}
-                    className="w-full pl-7 pr-4 py-2.5 rounded-xl text-sm bg-white/50 backdrop-blur-sm border border-white/40 focus:outline-none focus:ring-2 focus:ring-blush/50"
-                    placeholder="0"
-                  />
+                  <Input type="number" min="0" step="100" value={tipAmount} onChange={(e) => setTipAmount(e.target.value)} placeholder="0" className="pl-7" />
                 </div>
               </div>
 
