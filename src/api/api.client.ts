@@ -1,8 +1,10 @@
 import axios from 'axios';
 import { useAuthStore } from '@/store/auth.store';
 
+export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000',
+  baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -34,12 +36,11 @@ api.interceptors.response.use(
   }
 );
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-
 export function buildMediaUrl(path: string | null | undefined): string | null {
   if (!path) return null;
-  if (path.startsWith('http')) return path;
-  return `${API_BASE}${path}`;
+  if (path.startsWith('http://') || path.startsWith('https://')) return path;
+  const normalized = path.startsWith('/') ? path : `/${path}`;
+  return `${API_BASE_URL}${normalized}`;
 }
 
 export default api;
