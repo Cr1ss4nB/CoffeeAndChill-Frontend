@@ -78,7 +78,7 @@ export default function CategoriesPage() {
     setPendingStatus({ category, newActive: !category.is_active });
   }
 
-  const editCategory = panel !== 'new' ? panel : null;
+  const editCategory = panel === 'new' ? null : panel;
 
   return (
     <DashboardTemplate title="Gestión de Categorías">
@@ -282,7 +282,7 @@ export default function CategoriesPage() {
               </label>
               <Select
                 name="is_active"
-                defaultValue={editCategory ? (editCategory.is_active ? 'true' : 'false') : 'true'}
+                defaultValue={editCategory?.is_active === false ? 'false' : 'true'}
               >
                 <option value="true">Activa</option>
                 <option value="false">Inactiva</option>

@@ -280,7 +280,7 @@ function ProductPanel({
               type="button"
               variant="ghost"
               onClick={() => setRequiresRecipe(false)}
-              className={!requiresRecipe ? 'bg-white/60 border-white/60 shadow-sm' : 'bg-white/20 border-white/20 text-text-secondary'}
+              className={requiresRecipe ? 'bg-white/20 border-white/20 text-text-secondary' : 'bg-white/60 border-white/60 shadow-sm'}
             >
               No — Stock manual
             </Button>

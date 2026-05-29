@@ -1,17 +1,18 @@
 import { ToggleLeft, ToggleRight } from 'lucide-react';
 
 interface Props {
-  open: boolean;
-  itemName: string;
-  itemLabel: string;
-  activating: boolean;
-  loading: boolean;
-  onConfirm: () => void;
-  onCancel: () => void;
+  readonly open: boolean;
+  readonly itemName: string;
+  readonly itemLabel: string;
+  readonly activating: boolean;
+  readonly loading: boolean;
+  readonly onConfirm: () => void;
+  readonly onCancel: () => void;
 }
 
 export function ConfirmStatusDialog({ open, itemName, itemLabel, activating, loading, onConfirm, onCancel }: Props) {
   if (!open) return null;
+  const confirmLabel = activating ? 'Activar' : 'Desactivar';
 
   return (
     <>
@@ -65,7 +66,7 @@ export function ConfirmStatusDialog({ open, itemName, itemLabel, activating, loa
                   : 'bg-red-100/60 hover:bg-red-200/70 text-red-700'
               }`}
             >
-              {loading ? 'Guardando…' : activating ? 'Activar' : 'Desactivar'}
+              {loading ? 'Guardando…' : confirmLabel}
             </button>
           </div>
         </div>
