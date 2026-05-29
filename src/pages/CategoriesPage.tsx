@@ -253,16 +253,15 @@ export default function CategoriesPage() {
               <label className="block text-sm font-medium text-text-primary mb-1">
                 Tipo
               </label>
-              <select
+              <Select
                 name="type"
                 required
                 defaultValue={editCategory?.type ?? 'PRODUCT'}
                 disabled={editCategory !== null}
-                className="w-full px-4 py-2.5 rounded-xl text-sm bg-white/50 border border-white/40 disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-blush/50"
               >
                 <option value="PRODUCT">Producto</option>
                 <option value="WORKSHOP">Taller / Evento</option>
-              </select>
+              </Select>
               {editCategory !== null && (
                 <p className="text-xs text-text-secondary mt-1">
                   El tipo no se puede cambiar después de crear.
@@ -281,10 +280,9 @@ export default function CategoriesPage() {
               <label className="block text-sm font-medium text-text-primary mb-1">
                 Estado
               </label>
-              <select
+              <Select
                 name="is_active"
                 defaultValue={editCategory ? (editCategory.is_active ? 'true' : 'false') : 'true'}
-                className="w-full px-4 py-2.5 rounded-xl text-sm bg-white/50 border border-white/40 focus:outline-none focus:ring-2 focus:ring-blush/50"
               >
                 <option value="true">Activa</option>
                 <option value="false">Inactiva</option>
