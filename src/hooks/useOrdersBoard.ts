@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { fetchEventSource } from '@microsoft/fetch-event-source';
-import api from '@/api/api.client';
+import api, { API_BASE_URL } from '@/api/api.client';
 import { useAuthStore } from '@/store/auth.store';
 
 export interface BoardOrderItem {
@@ -32,7 +32,6 @@ export interface BoardOrder {
 export type KanbanColumn = 'PENDING' | 'PREPARING' | 'READY' | 'DELIVERED' | 'CANCELLED';
 
 const ORDERS_ENDPOINT = '/orders';
-const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:8000';
 
 
 export function useOrdersBoard() {
@@ -52,7 +51,7 @@ export function useOrdersBoard() {
     if (!token) return;
     const ctrl = new AbortController();
 
-    fetchEventSource(`${API_BASE}${ORDERS_ENDPOINT}/stream`, {
+    fetchEventSource(`${API_BASE_URL}${ORDERS_ENDPOINT}/stream`, {
       headers: { Authorization: `Bearer ${token}` },
       signal: ctrl.signal,
       openWhenHidden: true,

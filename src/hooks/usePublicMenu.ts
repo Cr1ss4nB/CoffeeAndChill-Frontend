@@ -1,8 +1,7 @@
 import { useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { getTableInfo, getPublicMenu, getPublicOrderStatus, getPublicTables } from '../services/public.service';
-
-const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:8000';
+import { API_BASE_URL } from '@/api/api.client';
 
 export const useTableInfo = (tableCode: string) =>
   useQuery({
@@ -39,7 +38,7 @@ export function usePublicOrderStatus(orderId: number | null) {
   useEffect(() => {
     if (!orderId) return;
 
-    const es = new EventSource(`${API_BASE}/public/orders/${orderId}/stream`);
+    const es = new EventSource(`${API_BASE_URL}/public/orders/${orderId}/stream`);
 
     es.onmessage = (e) => {
       if (!e.data) return;
