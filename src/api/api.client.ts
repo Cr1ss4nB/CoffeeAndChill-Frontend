@@ -38,8 +38,9 @@ api.interceptors.response.use(
 
 export function buildMediaUrl(path: string | null | undefined): string | null {
   if (!path) return null;
-  if (path.startsWith('http')) return path;
-  return `${API_BASE_URL}${path}`;
+  if (path.startsWith('http://') || path.startsWith('https://')) return path;
+  const normalized = path.startsWith('/') ? path : `/${path}`;
+  return `${API_BASE_URL}${normalized}`;
 }
 
 export default api;
