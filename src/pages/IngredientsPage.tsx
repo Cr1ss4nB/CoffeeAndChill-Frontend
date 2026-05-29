@@ -13,6 +13,8 @@ import {
   useAdjustIngredientStock,
 } from '@/hooks/useIngredients';
 import type { Ingredient } from '@/services/ingredients.service';
+import { CategoryManager } from '@/components/organisms/CategoryManager';
+import { FolderTree } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 type PanelMode = { type: 'new' } | { type: 'edit'; ingredient: Ingredient } | null;
@@ -34,6 +36,9 @@ export default function IngredientsPage() {
   const createMut = useCreateIngredient();
   const updateMut = useUpdateIngredient();
   const adjustMut = useAdjustIngredientStock();
+
+  const [showCategoryManager, setShowCategoryManager] = useState(false);
+  // Categories are managed by CategoryManager modal; no local usage here
 
   const filtered = (ingredients ?? []).filter((i) =>
     i.name.toLowerCase().includes(search.toLowerCase())
@@ -118,6 +123,9 @@ export default function IngredientsPage() {
         <div className="flex-1">
           <SearchBar value={search} onChange={setSearch} placeholder="Buscar insumo..." />
         </div>
+        <Button onClick={() => setShowCategoryManager(true)} variant="ghost" icon={<FolderTree size={16} />}>
+          Gestionar Categorías
+        </Button>
         <Button onClick={() => setPanel({ type: 'new' })} icon={<Plus size={16} />}>
           Nuevo insumo
         </Button>
@@ -277,6 +285,10 @@ export default function IngredientsPage() {
             </Button>
           </form>
         </div>
+      )}
+      {/* Modal de gestión de categorías */}
+      {showCategoryManager && (
+        <CategoryManager onClose={() => setShowCategoryManager(false)} />
       )}
     </DashboardTemplate>
   );

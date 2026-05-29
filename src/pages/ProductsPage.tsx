@@ -9,6 +9,8 @@ import { Spinner } from '@/components/atoms/Spinner/Spinner';
 import { SearchBar } from '@/components/molecules/SearchBar/SearchBar';
 import api from '@/api/api.client';
 import toast from 'react-hot-toast';
+import { CategoryManager } from '@/components/organisms/CategoryManager';
+import { FolderTree } from 'lucide-react';
 import type { Product, Category } from '@/hooks/useCatalog';
 
 type ModalState = Product | 'new' | null;
@@ -18,6 +20,7 @@ export default function ProductsPage() {
   const [modal, setModal] = useState<ModalState>(null);
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<number | 'all'>('all');
+  const [showCategoryManager, setShowCategoryManager] = useState(false);
 
   const { data: products, isLoading } = useQuery({
     queryKey: ['admin-products'],
@@ -25,9 +28,14 @@ export default function ProductsPage() {
   });
 
   const { data: categories } = useQuery({
-    queryKey: ['categories'],
-    queryFn: async () => (await api.get<Category[]>('/catalog/categories')).data,
+    queryKey: ['categories', showCategoryManager],
+    queryFn: async () => {
+      const res = await api.get<Category[]>('/catalog/categories');
+      return res.data;
+    },
   });
+
+  const productCategories = categories?.filter(c => c.type === 'PRODUCT') || [];
 
   const createMut = useMutation({
     mutationFn: (data: FormData | Record<string, unknown>) => api.post('/products', data),
@@ -118,13 +126,14 @@ export default function ProductsPage() {
             className="w-full px-4 py-2.5 rounded-xl text-sm bg-white/50 border border-white/40 focus:outline-none"
           >
             <option value="all">Todas las categorías</option>
-            {categories?.map((c) => (
+            {productCategories?.map((c) => (
               <option key={c.category_id} value={c.category_id}>
                 {c.category_name}
               </option>
             ))}
           </select>
         </div>
+        <Button onClick={() => setShowCategoryManager(true)} variant="ghost" icon={<FolderTree size={16} />}>Gestionar Categorías</Button>
         <Button onClick={() => setModal('new')} icon={<Plus size={16} />}>Nuevo producto</Button>
       </div>
 
@@ -180,7 +189,7 @@ export default function ProductsPage() {
               <label className="block text-sm font-medium text-text-primary mb-1">Categoría</label>
               <select name="category_id" required defaultValue={modal !== 'new' && modal ? modal.category_id : ''} className="w-full px-4 py-2.5 rounded-xl text-sm bg-white/50 border border-white/40">
                 <option value="">Seleccione...</option>
-                {categories?.map((c) => <option key={c.category_id} value={c.category_id}>{c.category_name}</option>)}
+                {productCategories?.map((c) => <option key={c.category_id} value={c.category_id}>{c.category_name}</option>)}
               </select>
             </div>
             <div>
@@ -194,6 +203,7 @@ export default function ProductsPage() {
           </form>
         </div>
       )}
+      {showCategoryManager && <CategoryManager onClose={() => setShowCategoryManager(false)} />}
     </DashboardTemplate>
   );
 }

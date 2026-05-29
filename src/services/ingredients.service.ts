@@ -9,6 +9,7 @@ export interface Ingredient {
   is_active: boolean;
   current_stock: number;
   is_low_stock: boolean;
+  category_id?: number;
 }
 
 export interface ConsumptionItem {
@@ -24,6 +25,7 @@ export interface IngredientCreate {
   unit: string;
   description?: string;
   min_stock: number;
+  category_id?: number;
 }
 
 export interface IngredientUpdate {
@@ -31,6 +33,7 @@ export interface IngredientUpdate {
   unit?: string;
   description?: string;
   min_stock?: number;
+  category_id?: number;
   is_active?: boolean;
 }
 
