@@ -1,16 +1,15 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Pencil, X, ToggleLeft, ToggleRight, ExternalLink, FlaskConical } from 'lucide-react';
+import { Plus, Pencil, X, ToggleLeft, ToggleRight, ExternalLink, FlaskConical, FolderTree } from 'lucide-react';
 import { DashboardTemplate } from '@/components/templates/DashboardTemplate/DashboardTemplate';
 import { Button } from '@/components/atoms/Button/Button';
 import { FormField } from '@/components/molecules/FormField/FormField';
 import { Spinner } from '@/components/atoms/Spinner/Spinner';
 import { SearchBar } from '@/components/molecules/SearchBar/SearchBar';
-import api from '@/api/api.client';
+import api, { buildMediaUrl } from '@/api/api.client';
 import toast from 'react-hot-toast';
 import { CategoryManager } from '@/components/organisms/CategoryManager';
-import { FolderTree } from 'lucide-react';
 import type { Product, Category } from '@/hooks/useCatalog';
 
 type ModalState = Product | 'new' | null;
@@ -21,6 +20,17 @@ export default function ProductsPage() {
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<number | 'all'>('all');
   const [showCategoryManager, setShowCategoryManager] = useState(false);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState('');
+
+  useEffect(() => {
+    setImageFile(null);
+    if (modal && modal !== 'new' && typeof modal === 'object') {
+      setImagePreview(buildMediaUrl(modal.image_url) ?? '');
+      return;
+    }
+    setImagePreview('');
+  }, [modal]);
 
   const { data: products, isLoading } = useQuery({
     queryKey: ['admin-products'],
@@ -76,7 +86,14 @@ export default function ProductsPage() {
     return matchesSearch && matchesCategory;
   });
 
-  function handleSave(e: React.FormEvent<HTMLFormElement>) {
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImageFile(file);
+    setImagePreview(URL.createObjectURL(file));
+  }
+
+  async function handleSave(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
     const name = fd.get('name') as string;
@@ -85,7 +102,19 @@ export default function ProductsPage() {
     const price = Number(fd.get('price'));
     const stock_quantity = Number(fd.get('stock_quantity'));
     const status = fd.get('status') as string;
-    const image_url = ((fd.get('image_url') as string) || '').trim() || undefined;
+    let image_url = ((fd.get('image_url') as string) || '').trim() || undefined;
+
+    if (imageFile) {
+      try {
+        const imageData = new FormData();
+        imageData.append('file', imageFile);
+        const uploadRes = await api.post<{ image_url: string }>('/products/upload-image', imageData);
+        image_url = uploadRes.data.image_url;
+      } catch {
+        toast.error('No se pudo subir la imagen');
+        return;
+      }
+    }
 
     const payload: Record<string, unknown> = { name, description, category_id, price, stock_quantity, status };
     if (image_url) payload.image_url = image_url;
@@ -184,17 +213,33 @@ export default function ProductsPage() {
             <FormField label="Descripción" fieldId="description" name="description" defaultValue={modal !== 'new' && modal ? modal.description : ''} />
             <FormField label="Precio" fieldId="price" name="price" type="number" required defaultValue={modal !== 'new' && modal ? String(modal.price) : ''} />
             <FormField label="Stock base" fieldId="stock_quantity" name="stock_quantity" type="number" required defaultValue={modal !== 'new' && modal ? String(modal.stock_quantity) : '0'} />
-            <FormField label="URL imagen" fieldId="image_url" name="image_url" defaultValue={modal !== 'new' && modal ? (modal.image_url || '') : ''} />
             <div>
-              <label className="block text-sm font-medium text-text-primary mb-1">Categoría</label>
-              <select name="category_id" required defaultValue={modal !== 'new' && modal ? modal.category_id : ''} className="w-full px-4 py-2.5 rounded-xl text-sm bg-white/50 border border-white/40">
+              <label htmlFor="product_image_file" className="block text-sm font-medium text-text-primary mb-1">Imagen del producto</label>
+              {imagePreview && (
+                <div className="mb-2 w-20 h-20 rounded-xl overflow-hidden border border-white/40 bg-white/30">
+                  <img src={imagePreview} alt="preview" className="w-full h-full object-cover" />
+                </div>
+              )}
+              <input
+                id="product_image_file"
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                className="block w-full text-xs text-text-secondary file:mr-3 file:rounded-lg file:border-0 file:bg-blush/30 file:px-3 file:py-1.5 file:font-medium file:text-text-primary cursor-pointer"
+              />
+              <p className="text-xs text-text-secondary mt-1">Opcional: también puedes pegar una URL externa.</p>
+            </div>
+            <FormField label="URL imagen (opcional)" fieldId="image_url" name="image_url" defaultValue={modal !== 'new' && modal ? (modal.image_url || '') : ''} />
+            <div>
+              <label htmlFor="product_category_id" className="block text-sm font-medium text-text-primary mb-1">Categoría</label>
+              <select id="product_category_id" name="category_id" required defaultValue={modal !== 'new' && modal ? modal.category_id : ''} className="w-full px-4 py-2.5 rounded-xl text-sm bg-white/50 border border-white/40">
                 <option value="">Seleccione...</option>
                 {productCategories?.map((c) => <option key={c.category_id} value={c.category_id}>{c.category_name}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-text-primary mb-1">Estado</label>
-              <select name="status" defaultValue={modal !== 'new' && modal ? modal.status : 'ACTIVE'} className="w-full px-4 py-2.5 rounded-xl text-sm bg-white/50 border border-white/40">
+              <label htmlFor="product_status" className="block text-sm font-medium text-text-primary mb-1">Estado</label>
+              <select id="product_status" name="status" defaultValue={modal !== 'new' && modal ? modal.status : 'ACTIVE'} className="w-full px-4 py-2.5 rounded-xl text-sm bg-white/50 border border-white/40">
                 <option value="ACTIVE">Activo</option>
                 <option value="INACTIVE">Inactivo</option>
               </select>
